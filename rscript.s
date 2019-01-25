@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# submits an R script as a batch job
+# usage: ./rscript.s <script.R> <optional arguments>
 echo "#!/bin/bash
 #
 #SBATCH --job-name=rscript
