@@ -1,1 +1,1 @@
-# Ciona ATAC-seq
+# ATAC-seq in Ciona caridopharyngeal cells
