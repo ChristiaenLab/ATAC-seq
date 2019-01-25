@@ -50,7 +50,7 @@ mapply(
 )
 
 # scRNAseq
-scrna <- lrtab('dat/weiGeneLists/scrna/',read.csv,stringsAsFactors=F)
+scrna <- lrtab('dat/scrna/',read.csv,stringsAsFactors=F)
 
 scrna$TVCP <- as.data.frame(rbind(as.matrix(scrna$TVCP),cbind(
   c("KH2013:KH.L71.1","KH2013:KH.C10.370","KH2013:KH.C1.404","KH2013:KH.C1.279"),
@@ -61,7 +61,7 @@ scrna$TVCP <- as.data.frame(rbind(as.matrix(scrna$TVCP),cbind(
 
 dbWriteGenes(con,'scrna',melt.rename(scrna,'geneset'))
 
-ebfdat <- lrtab('dat/weiGeneLists/ebfdat/',read.csv,stringsAsFactors=F)
+ebfdat <- lrtab('dat/ebfdat/',read.csv,stringsAsFactors=F)
 dbWriteGenes(con,'ebfdat',melt.rename(ebfdat,'geneset'))
 # mapply(
 #   dbWriteGenes,
