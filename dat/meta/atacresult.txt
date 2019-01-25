@@ -1,0 +1,12 @@
+comparison	model
+condition_mesp_MekMut_vs_mesp_dnFGFR	mesp
+condition_mesp_dnFGFR_vs_control	mesp
+condition_mesp_MekMut_vs_control	mesp
+condition_FoxF_KO_vs_control	mesp
+condition_handr_MekMut_vs_handr_dnFGFR	handr
+condition_handr_MekMut_vs_control	handr
+condition_handr_dnFGFR_vs_control	handr
+time_6hpf_vs_10hpf	time
+time_10hpf_vs_15hpf	time
+time_10hpf_vs_18hpf	time
+tissue_B7.5_vs_mesenchyme	tissue

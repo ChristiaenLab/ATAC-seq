@@ -1,0 +1,5 @@
+modelid	normct	nullmodel	altmodel	lib
+tissue	tissuect	'~0+time+method'	'~0+time+tissue+method'	'SELECT lib FROM ataclib WHERE NOT omit AND NOT ko AND condition="control" AND tissue!="Ef1a" AND time!="6hpf"'
+handr	handrct	'~0+time+method'	'~0+condition+time+method'	'SELECT lib FROM ataclib WHERE NOT omit AND tissue="B7.5" AND NOT ko AND time IN ("15hpf","18hpf","20hpf")'
+mesp	mespct	'~0+KO'	'~0+condition+KO'	'SELECT lib FROM ataclib WHERE NOT omit AND tissue="B7.5" AND time="10hpf"'
+time	timect	'~0+method'	'~0+time+method'	'SELECT lib FROM ataclib WHERE NOT omit AND tissue="B7.5" AND NOT ko AND condition="control"'

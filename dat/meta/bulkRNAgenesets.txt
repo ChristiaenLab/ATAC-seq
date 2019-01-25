@@ -1,0 +1,9 @@
+geneset	query
+MAPK18activated	'SELECT GeneID FROM handr_rnaseq WHERE comparison="condtime_foxfcamras18hpf_handrdnfgfr18hpf" AND log2FoldChange>1 AND padj<0.05 INTERSECT SELECT GeneID FROM handr_rnaseq WHERE comparison="condtime_handrdnfgfr18hpf_handrlacz18hpf" AND log2FoldChange<-1 AND padj<0.05'
+MAPK18inhibited	'SELECT GeneID FROM handr_rnaseq WHERE comparison="condtime_foxfcamras18hpf_handrdnfgfr18hpf" AND padj<0.05 AND log2FoldChange<-1 INTERSECT SELECT GeneID FROM handr_rnaseq WHERE comparison="condtime_foxfcamras18hpf_handrlacz18hpf" AND padj<0.05 AND log2FoldChange<-1'
+FoxFactivated	'SELECT DISTINCT GeneID FROM foxf_rnaseq WHERE comparison="FoxF10hpf_LacZ10hpf" AND padj<0.05 AND log2FoldChange<-0.75'
+FoxFinhibited	'SELECT DISTINCT GeneID FROM foxf_rnaseq WHERE comparison="FoxF10hpf_LacZ10hpf" AND padj<0.05 AND log2FoldChange>0.75'
+MAPK10activated	'SELECT DISTINCT GeneID FROM microarray WHERE dnfgfrvwt_pval<0.05 AND Mesp_dnfgfrvwt_logfc<-1'
+MAPK10inhibited	'SELECT DISTINCT GeneID FROM microarray WHERE dnfgfrvwt_pval<0.05 AND Mesp_dnfgfrvwt_logfc>1'
+upreg6hpf	'SELECT DISTINCT GeneID FROM microarray WHERE lgvwt_pval<0.05 AND lgvwt_logfc>1'
+downreg6hpf	'SELECT DISTINCT GeneID FROM microarray WHERE lgvwt_pval<0.05 AND lgvwt_logfc<-1'
