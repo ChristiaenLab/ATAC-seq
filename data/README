@@ -1,0 +1,2 @@
+requires: shiny, RSQLite
+usage: shiny::runApp("data")
