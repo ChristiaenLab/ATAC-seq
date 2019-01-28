@@ -1,9 +1,13 @@
 source('data/dbDiamond.R')
 source('data/sqlfns.R')
 source('data/dirfns.R')
-source('scatterplotfns.R')
+source('data/scatterplotfns.R')
+source('data/DESeqFns.R')
+
 library(DBI)
+
 con <- dbConnect(RSQLite::SQLite(),'data/atacCiona.db')
+
 bulkGS <- getBulkRNA(con)
 scrna <- getScRNA(con)
 peaksets <- getPeaksets(con)
@@ -305,4 +309,47 @@ cor(
   rna$FoxF10hpf_LacZ10hpf[tmp$GeneID,'log2FoldChange'],
   atac$condition_FoxF_KO_vs_control[tmp$PeakID,'log2FoldChange'],
   method='spearman'
+)
+
+mapply(
+  scatterRnaAtac,
+  rna[c(
+    'condtime_foxfcamras18hpf_handrlacz18hpf',
+    'condtime_handrdnfgfr18hpf_handrlacz18hpf',
+    'FoxF10hpf_LacZ10hpf',
+    'MA_dnFGFR_LacZ_10hpf'
+  )],
+  atac[c(
+    'condition_handr_MekMut_vs_control', 
+    'condition_handr_dnFGFR_vs_control',
+    'condition_FoxF_KO_vs_control',
+    "condition_mesp_dnFGFR_vs_control"
+  )],
+  filename=c('handr_mekmut','handr_dnfgfr','foxf_ko','mesp_dnfgfr'),
+  lfc=list(c(1,.5),c(1,.5),c(.75,.45),c(1,.7)),
+  genes=list(
+    prime.denovo[1:4],
+    prime.denovo[1:4],
+    prime.denovo[c(5,7,1:4)],
+    prime.denovo[c(5,7,1:4)]
+  ),
+  col=list(
+    c(1,'red','blue','red','blue'),
+    c(1,'red','blue','red','blue'),
+    c(1,'forestgreen','gray28','red','blue','red','blue'),
+    c(1,'forestgreen','gray28','red','blue','red','blue')
+  ),
+  pch=list(
+    c(19,1,19,19,1,1),
+    c(19,1,19,19,1,1),
+    c(19,1,19,19,19,19,1,1),
+    c(19,1,19,19,19,19,1,1)
+  ),
+  MoreArgs=list(
+    fdr=c(.05,.05),
+    path='scatter',
+    gene.names=gene.names,
+    ann=peakGeneAnnotation,
+    xlab='log2(RNAseq FC)',ylab='log2(ATACseq FC)'
+  )
 )

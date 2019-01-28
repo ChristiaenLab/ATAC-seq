@@ -1,4 +1,3 @@
-source('dirfns.R')
 get.dds <- function(
   dat,expDesign,design,path='.',comparisons=NULL,cooksCutoff=T,parallel=T,alpha=.1,independentFiltering=T,...
 ){
