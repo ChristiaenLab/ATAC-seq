@@ -101,7 +101,7 @@ dbDiamondplot <- function(
   require(DBI)
   require(gridExtra)
   
-  gene.names <- getGeneNames(con)
+  gene.names <- dbReadTable(con,'gene_name',row.names="GeneID")
   
   if(gene.peak.intersect){
     gene.sets <- lapply(

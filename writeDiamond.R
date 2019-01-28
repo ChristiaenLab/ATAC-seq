@@ -12,7 +12,7 @@ bulkGS <- getBulkRNA(con)
 scrna <- getScRNA(con)
 peaksets <- getPeaksets(con)
 peakGeneAnnotation <- getAnnotation(con)
-gene.names <- mcols(peakGeneAnnotation$genes,use.names = T)
+gene.names <- peakGeneAnnotation$gene.names
 
 rna <- getRnaDat(con)[c(3:5,2)]
 rna$gfp.lacz <- rna$FoxF10hpf_LacZ10hpf

@@ -41,7 +41,8 @@ col.hmap <- function(
     hm <- Reduce('+',hm)
   } else hm <- Heatmap(
     mat,...,
-    col=col
+    col=col,
+    show_row_names=show_row_names
   )
   return(hm)
 }

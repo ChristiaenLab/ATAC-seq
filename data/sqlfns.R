@@ -104,12 +104,13 @@ getAnnotation <- function(con){
   features <- features[,-1:-3]
   sapply(1:length(features),function(x) features[,x] <<- as.logical(features[,x]))
   genes <- dbReadTable(con,"gene_name")
+  gene.names <- data.frame(
+    UniqueNAME=genes$UniqueNAME,row.names = genes$GeneID,stringsAsFactors = F
+  )
   genes <- GRanges(
     genes$chr,
     IRanges(genes$start,genes$end,names = genes$GeneID),
-    elementMetadata=data.frame(
-      UniqueNAME=genes$UniqueNAME,row.names = genes$GeneID,stringsAsFactors = F
-    )
+    UniqueNAME=genes$UniqueNAME
   )
   genewindow <- resize(genes,width(genes)+20000,fix = "center")
   # trim out-of-bounds ranges
@@ -130,7 +131,8 @@ getAnnotation <- function(con){
     features=features,
     peaks=peaks,
     genes=genes,
-    genewindow=genewindow
+    genewindow=genewindow,
+    gene.names=gene.names
   ))
 }
 
