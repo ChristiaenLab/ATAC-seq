@@ -1,3 +1,5 @@
+# Figs. 2A, S20
+
 library(chromVAR)
 library(BSgenome.Cintestinalis.KH.KH2013)
 library(TFBSTools)
@@ -5,15 +7,14 @@ library(BiocParallel)
 library(motifmatchr)
 library(ComplexHeatmap)
 library(circlize)
-library(ggplot2)
-library(ggseqlogo)
 
 source('data/dirfns.R')
 source("data/chromVarPlotFns.R")
 
-writeChromVarHmap("2018-12-12/chromVAR/homer/mesp_all",.01,2)
+# Fig. 2A
 writeChromVarHmap("2018-12-12/chromVAR/homer/mesp_all",.01,3)
 
+# Fig. S20
 load("2019-01-22/chromVAR/homer/denovoASM/deviations.Rdata")
 asmDev <- dev
 load("2019-01-22/chromVAR/homer/denovoCardiac/deviations.Rdata")
@@ -78,14 +79,3 @@ dev.off()
 
 denovoCardiacHmap <- chromVarHmap(dev,0.01,2)
 denovoAsmHmap <- chromVarHmap(dev,0.01,2)
-
-sapply(
-  homer.motifs[sapply(tags(homer.motifs),'[[',"DBID.1")%in%c(
-    'MyoD',"MyoG","c-Jun-CRE","Foxf1","Nkx6.1","Smad4","RARg","Pax7","Tbx5","Gata4","Gata6","Otx2","CRX"
-  )],
-  function(x) dir.gg(
-    ggseqlogo(Matrix(x))+ggtitle(tags(x)$DBID.1),
-    tags(x)$DBID.1,ext='eps'
-  )
-)
-

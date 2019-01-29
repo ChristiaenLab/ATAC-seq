@@ -1,4 +1,4 @@
-# Figs. 1C, 3C, S15
+# Figs. 1C, 3C, S15, S18C
 
 library(DBI)
 library(ComplexHeatmap)
@@ -130,7 +130,7 @@ acc <- list(
 )
 timeacc <- sapply(acc,intersect,peaksets$timeDep)
 
-# Fig. 3C
+# Fig. 3C, S18C
 mapply(
   function(genes,file) {
     genePeakHmap(
