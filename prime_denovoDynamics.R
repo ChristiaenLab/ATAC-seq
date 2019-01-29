@@ -1,3 +1,5 @@
+# Figs. 1C, 3C, S15
+
 library(DBI)
 library(ComplexHeatmap)
 library(circlize)
@@ -103,6 +105,7 @@ cardiac.asmDA <- lapply(cardiac.asmGenePeak,function(x) x[x$PeakID%in%DAunion,])
 cardiac.asmMat <- do.call(rbind,sapply(cardiac.asmDA,function(x) peakmat[x$PeakID,]))
 
 
+# Fig. 1C
 dir.eps('time',height=12)
 col.hmap(
   peakmat[peaksets$timeDep,c(-5,-7:-8)],
@@ -127,6 +130,7 @@ acc <- list(
 )
 timeacc <- sapply(acc,intersect,peaksets$timeDep)
 
+# Fig. 3C
 mapply(
   function(genes,file) {
     genePeakHmap(
@@ -138,6 +142,7 @@ mapply(
   prime.denovo,paste0(names(prime.denovo),'AccTime')
 )
 
+# Fig. S15
 tmp <- mergeGenePeak(con,bulkGS$FoxFactivated,peaksets$timeDep)
 tmp[,1] <- gene.names[tmp$GeneID,"UniqueNAME"]
 dir.eps('foxfTime',height=nrow(tmp)/6+2)
