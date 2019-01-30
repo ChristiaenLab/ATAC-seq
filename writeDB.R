@@ -1,34 +1,60 @@
+# initialize the database used for all subsequent analysis
+
 library(DBI)
 library(GenomicRanges)
-# library(reshape2)
+library(GenomicFeatures)
+library(rtracklayer)
+library(BSgenome.Cintestinalis.KH.KH2013)
+
 source('data/sqlfns.R')
 source('data/dirfns.R')
+source('data/GRfns.R')
 
+# initialize database
 con <- dbConnect(RSQLite::SQLite(),'data/atacCiona.db')
 
-# appends list of data.frames as in reshape2::melt
-melt.rename <- function(dat,value='value',...){
-  # require(reshape2)
-  # res <- melt(dat)
-  res <- sapply(dat,as.data.frame,simplify = F)
-  res <- mapply(
-    cbind,dat,names(dat),stringsAsFactors=F,SIMPLIFY = F
-  )
-  res <- lapply(res, function(x) setNames(x,c(names(x)[-length(x)],value)))
-  res <- do.call(rbind,res)
-  return(res)
-}
+# read gene data
+genedat <- lrtab("dat/genes/",read.delim,'txt',quote='',stringsAsFactors=F)
+genedat$ATM_genes_from_ANISEED <- genedat$ATM_genes_from_ANISEED[!duplicated(genedat$ATM_genes_from_ANISEED),]
+kh2013 <- getFeatures('KH.KHGene.2013.gff3',genedat$gene_name)
 
-dbWriteGenes <- function(...) dbWriteKey(...,foreign = 'gene_name(GeneID)')
-dbWritePeaks <- function(...) dbWriteKey(...,foreign = 'peakfeature(PeakID)')
+# TSS-seq
+tsc <- read.csv('dat/peaks/tsc.csv')
+tsc$GeneID <- paste0("KH2013:",tsc$GeneID)
+dbWriteGenes(con,'tsc',tsc)
 
-# this date will depend on when annotatePeaks.R was run
-load('2018-12-05/peakome/peakGeneAnnotation.Rdata')
+tsc <- GRanges(
+  Rle(tsc$Chr),
+  IRanges(tsc$Start,tsc$End),
+  Rle(tsc$Strand),
+  GeneID=tsc$GeneID,
+  Rep.TSS=tsc$Rep.TSS,
+  feature=tsc$Location
+)
+
+# annotate peaks
+peakome <- import('peaks.subtracted.bed')
+peakome <- peakome[width(peakome)>50]
+
+promoterAnn <- findOverlaps(peakome,kh2013$promoterGene)
+
+genomefeat <- append(
+  kh2013$features,
+  list(TSC=tsc,genome=GRanges(seqinfo(BSgenome.Cintestinalis.KH.KH2013)))
+)
+genomefeat <- do.call(GRangesList,lapply(genomefeat,function(x) reduce(unlist(x))))
+genomefeat <- sapply(genomefeat,trim)
+
+peakGeneAnnotation <- annotatePeaks(peakome,kh2013$genebody,features = genomefeat)
+peakGeneAnnotation$promoterAnn <- promoterAnn
+
 
 dbWriteKey(con,'peakfeature',peakGeneAnnotation$features,primary = 'PeakID',row.names = "PeakID")
 
-genedat <- lrtab("dat/genes/",read.delim,'txt',quote='',stringsAsFactors=F)
-genedat$ATM_genes_from_ANISEED <- genedat$ATM_genes_from_ANISEED[!duplicated(genedat$ATM_genes_from_ANISEED),]
+gene.peak <- reshape2::melt(peakGeneAnnotation$peakToGene)
+names(gene.peak) <- c("GeneID","PeakID")
+dbWriteKey(con,'geneToPeak',gene.peak,foreign = c("gene_name(GeneID)","peakfeature(PeakID)"))
+
 
 genebody <- data.frame(
   GeneID=names(peakGeneAnnotation$genes),
@@ -63,17 +89,10 @@ dbWriteGenes(con,'scrna',melt.rename(scrna,'geneset'))
 
 ebfdat <- lrtab('dat/ebfdat/',read.csv,stringsAsFactors=F)
 dbWriteGenes(con,'ebfdat',melt.rename(ebfdat,'geneset'))
-# mapply(
-#   dbWriteGenes,
-#   name=names(scrna),
-#   value=scrna,
-#   MoreArgs = list(conn=con)
-# )
 
 genedat <- lrtab("dat/genes/",read.csv,'csv',stringsAsFactors=F)
 
 names(genedat$mesenchyme20hpf)[1] <- "UniqueNAME"
-# dbWriteTable(con,'mesenchyme20hpf',genedat$mesenchyme20hpf,overwrite=T)
 dbWriteKey(con,'mesenchyme20hpf',genedat$mesenchyme20hpf,foreign = "gene_name(UniqueNAME)")
 
 genedat$mesenchyme20hpf <- do.call(data.frame,append(
@@ -91,10 +110,6 @@ mapply(
   MoreArgs = list(conn=con)
 )
 
-gene.peak <- reshape2::melt(peakGeneAnnotation$peakToGene)
-names(gene.peak) <- c("GeneID","PeakID")
-dbWriteKey(con,'geneToPeak',gene.peak,foreign = c("gene_name(GeneID)","peakfeature(PeakID)"))
-
  # bulkRNAseq
 
 foxf <- lrtab('dat/rnaseq/foxf/',read.csv,'\\.csv',stringsAsFactors=F)
@@ -102,22 +117,19 @@ foxf <- lrtab('dat/rnaseq/foxf/',read.csv,'\\.csv',stringsAsFactors=F)
 foxf$FoxF10hpf_LacZ10hpf$log2FoldChange <- -foxf$FoxF10hpf_LacZ10hpf$log2FoldChange
 foxf$LacZ10hpf_Ngn10hpf$log2FoldChange <- -foxf$LacZ10hpf_Ngn10hpf$log2FoldChange
 
-# foxf <- do.call(rbind,mapply(function(x,y) cbind(
-#   as.data.frame(x),comparison=y,stringsAsFactors=F
-# ),foxf,names(foxf),SIMPLIFY = F))
 dbWriteGenes(con,'foxf_rnaseq',melt.rename(foxf,'comparison'))
 
 handr <- lrtab('dat/rnaseq/handr/',read.csv,'\\.csv')
 dbWriteGenes(con,'handr_rnaseq',melt.rename(handr,'comparison'))
-# mapply(
-#   dbWriteGenes,
-#   name=names(rna),
-#   value=rna,
-#   MoreArgs = list(conn=con,row.names="GeneID")
-# )
 
-# ATACseq
+# ATAC-seq metadata
 
+metadat <- lrtab('dat/meta',read.delim,'txt',quote="'")
+mapply(dbWriteTable,name=names(metadat),metadat,MoreArgs = list(conn=con,overwrite=T))
+
+ataclib <- dbReadTable(con,'ataclib')
+
+#generate PeakIDs
 peakcoord <- paste(
   seqnames(peakGeneAnnotation$peaks),
   start(peakGeneAnnotation$peaks)-1,
@@ -128,33 +140,7 @@ peak.id.coord <- data.frame(
   row.names = peakcoord
 )
 
-metadat <- lrtab('dat/meta',read.delim,'txt',quote="'")
-mapply(dbWriteTable,name=names(metadat),metadat,MoreArgs = list(conn=con,overwrite=T))
-
-metadat <- lrtab('dat/meta/',read.csv,'csv',row.names=1)
-
-mapply(
-  dbWritePeaks,
-  name=names(metadat),
-  metadat,
-  MoreArgs = list(conn=con)
-)
-
-peakdat <- lrtab('dat/peaks/',read.csv,'csv',row.names=1)
-peakdat <- lapply(peakdat,function(x){
-  row.names(x) <- peak.id.coord[row.names(x),]
-  return(x)
-})
-
-mapply(
-  dbWritePeaks,
-  name=names(peakdat),
-  peakdat,
-  MoreArgs = list(conn=con,row.names="PeakID",overwrite=T)
-)
-
-ataclib <- dbReadTable(con,'ataclib')
-
+# ATAC-seq counts
 counts <- lrtab(
   'counts.new/',
   read.table
@@ -164,47 +150,10 @@ row.names(dat) <- peak.id.coord[do.call(function(...)paste(...,sep = ':'),counts
 colnames(dat) <- make.names(sub('_counts_new.V7','',colnames(dat)))
 dat <- as.data.frame(dat)
 dat <- dat[,ataclib[,1]]
+dbWritePeaks(con,'atacreads',dat,row.names = 'PeakID',overwrite=T)
+
+# add reads per library to metadata
 ataclib$reads <- apply(dat,2,sum)
 dbWriteTable(con,'ataclib',ataclib,overwrite=T)
 
-dbWritePeaks(con,'atacreads',dat,row.names = 'PeakID',overwrite=T)
-
-atac <- Reduce(function(x,y){
-  load(paste0(
-    # the ATAC-seq directory corresponding to the date when runDESeq.R was run 
-    '2018-10-02/peakomenocooks/', y, '/res.Rdata'
-  ))
-  x[[y]] <- res
-  return(x)
-  # the subdirectories corresponding to the DESeq2 models
-}, c('foxf10','cardiac15','handr','lacz','gfp'), init = NULL)
-
-names(atac$cardiac15) <- 'condition_handr_dnFGFR_15hpf_vs_control'
-atac <- Reduce(append,atac)
-
-atac <- lapply(atac,function(x){
-  row.names(x) <- peak.id.coord[row.names(x),]
-  return(x)
-})
-
-atac <- sapply(atac,function(x) cbind(PeakID=row.names(x),as.data.frame(x),stringsAsFactors=F),simplify = F)
-dbWritePeaks(con,'atacseq',melt.rename(atac,'comparison'))
-
-# atac <- do.call(rbind,mapply(function(x,y) cbind(
-#   PeakID=row.names(x),as.data.frame(x),comparison=y,stringsAsFactors=F
-# ),atac,names(atac),SIMPLIFY = F))
-
-# mapply(
-#   dbWritePeaks,
-#   name=names(atac),
-#   value=atac,
-#   MoreArgs = list(conn=con,row.names='PeakID',overwrite=T)
-# )
-
-# dbWriteRownamesAs(con,'cisbp_matches',as.data.frame(as.matrix(motifMatches(peakmatches))),row.names = "PeakID")
-# dbCreateTable(con,'cisbp_matches',colnames(motifMatches(peakmatches)))
-# apply(
-#   as.data.frame(as.matrix(motifMatches(peakmatches))),1,
-#   function(x) dbWriteRownamesAs(con,'cisbp_matches',x,row.names = "PeakID",append=T)
-# )
 

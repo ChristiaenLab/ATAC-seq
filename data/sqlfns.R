@@ -1,4 +1,46 @@
+melt.rename <- function(dat,value='value',...){
+# appends list of data.frames as in reshape2::melt
+  res <- sapply(dat,as.data.frame,simplify = F)
+  res <- mapply(
+    cbind,dat,names(dat),stringsAsFactors=F,SIMPLIFY = F
+  )
+  res <- lapply(res, function(x) setNames(x,c(names(x)[-length(x)],value)))
+  res <- do.call(rbind,res)
+  return(res)
+}
+
+
+dbWriteKey <- function(conn,name,value,primary=F,foreign=F,row.names=F,overwrite=T,...){
+  # wrapper function for dbWriteTable which allows specification of primary and foreign keys
+  require(RSQLite)
+  value <- as.data.frame(value)
+  name <- make.db.names(conn,name)
+  names(value) <- make.db.names(conn,names(value))
+  if(is.character(row.names)){
+    colnames <- c(row.names,names(value))
+    value <- do.call(data.frame,append(list(row.names(value)),value))
+    names(value) <- colnames
+  }
+  s <- sprintf("CREATE TABLE %s(%s", name, paste(names(value), collapse = ", "))
+  if(is.character(primary)) s <- paste0(s,', PRIMARY KEY(',primary,')')
+  if(is.character(foreign)) s <- paste0(s,paste0(
+    ', FOREIGN KEY(',
+    sub('.*\\((.*)\\)',"\\1",foreign),
+    ') REFERENCES ',
+    foreign,
+    collapse = ''
+    ))
+  s <- paste0(s,')')
+  if(overwrite&dbExistsTable(conn,name)) dbSendStatement(conn,paste("DROP TABLE",name))
+  dbSendStatement(conn, s)
+  dbWriteTable(conn,name,value,...,row.names=F,append=T)
+}
+
+dbWriteGenes <- function(...) dbWriteKey(...,foreign = 'gene_name(GeneID)')
+dbWritePeaks <- function(...) dbWriteKey(...,foreign = 'peakfeature(PeakID)')
+
 dbWriteRownamesAs <- function(conn,name,value,row.names='row_names',...){
+  # wrapper function for dbWriteTable allowing a user-specified name for row.names attriute
   require(DBI)
   value <- as.data.frame(value)
   colnames <- c(row.names,names(value))
@@ -7,6 +49,7 @@ dbWriteRownamesAs <- function(conn,name,value,row.names='row_names',...){
   dbWriteTable(conn,name,value,...,row.names=F)
 }
 
+# extracts table name from SQL query
 getTable <- function(sql) sub(".*?FROM (.*?) .*","\\1",sql)
 
 getSig <- function(con,table,lfc,p=0.05) {
@@ -24,6 +67,8 @@ getAbsSig <- function(con,table,lfc,p=0.05) {
 }
 
 geneToPeak <- function(con,genes){
+  # accepts a vector of GeneIDs
+  # returns a data.frame of all peaks associated to genes
   require(DBI)
   return(dbGetQuery(con,paste0(
     'SELECT GeneID, PeakID FROM geneToPeak WHERE GeneID IN ("',
@@ -39,6 +84,8 @@ geneToPeak <- function(con,genes){
 }
 
 splitByDistinct <- function(con,table,field,select='*',...) {
+  # accepts a database connection, table name and field name
+  # splits table by field into a list of data.frames
   require(DBI)
   sapply(
     dbGetQuery(con,paste(
@@ -52,6 +99,8 @@ splitByDistinct <- function(con,table,field,select='*',...) {
 }
 
 peakToGene <- function(con,peaks){
+  # accepts a database connection and a vector of PeakIDs
+  # returns a data.frame of all GeneIDs associated to peaks
   require(DBI)
   return(dbGetQuery(con,paste0(
     'SELECT PeakID, GeneID FROM geneToPeak WHERE PeakID IN("',
@@ -68,6 +117,8 @@ peakToGene <- function(con,peaks){
 }
 
 mergeGenePeak <- function(con,genes,peaks){
+  # accepts a database connection, list of GeneIDs, and list of PeakIDs
+  # returns a data.frame of all associations between peaks and genes
   require(DBI)
   return(dbGetQuery(con,paste0(
     'SELECT GeneID,PeakID FROM geneToPeak WHERE GeneID IN("',
@@ -78,6 +129,7 @@ mergeGenePeak <- function(con,genes,peaks){
 }
 
 mergeGenePeak2 <- function(con,genes,peaks){
+  # as mergeGenePeak, but also returns gene names and peak coordinates
   require(DBI)
   return(dbGetQuery(con,paste0(
     'SELECT geneToPeak.GeneID,UniqueNAME,geneToPeak.PeakID,peakfeature.chr,peakfeature.start,peakfeature.end FROM (geneToPeak LEFT JOIN gene_name ON geneToPeak.GeneID=gene_name.GeneID) LEFT JOIN peakfeature ON geneToPeak.PeakID=peakfeature.PeakID WHERE geneToPeak.GeneID IN("',
@@ -88,11 +140,20 @@ mergeGenePeak2 <- function(con,genes,peaks){
   )))
 }
 
+# returns a 1-column dataframe of gene names with GeneID as row.names
+getGeneNames <- function(con) dbGetQuery(con,'SELECT GeneID,UniqueNAME FROM gene_name',row.names="GeneID")
 
-# getGeneNames <- function(con) dbReadTable(con,'gene_name',row.names="GeneID")
-
-# may improve speed by reading all association into R environment
 getAnnotation <- function(con){
+# it may improve speed to read all association into R environment
+  # reads all gene-peak associations from a database connection.
+  # returns a list with attributes:
+    # geneToPeak  list of vectors of PeakIDs split by GeneID
+    # peakToGene  list of vectors of GeneID split by PeakID
+    # features  logical matrix of genomic features overlapping peaks
+    # peaks   GRanges of peakome
+    # genes   GRanges of KH2013 gene loci
+    # genewindow GRanges of KH2013 gene loci +/- 10kbp from TSS/TTS
+    # gene.names  mapping of GeneID to gene name
   require(DBI)
   require(GenomicRanges)
   require(BSgenome.Cintestinalis.KH.KH2013)
@@ -137,6 +198,9 @@ getAnnotation <- function(con){
 }
 
 getScRNA <- function(con){
+  # accepts a database connection
+  # returns a list of GeneID vectors split by gene sets from scRNAseq, 
+  # EBF perturbation microarray, ATM genes from ANISEED, and mesenchymal genes
   require(DBI)
   scrna <- Reduce(append,sapply(c(
     'scrna','ebfdat'
@@ -172,6 +236,9 @@ getScRNA <- function(con){
 }
 
 getBulkRNA <- function(con){
+  # accepts a database connection
+  # returns a list of GeneID vectors split by DE gene sets from bulk RNA-seq or microarrays
+  # the selection of DE genes for each set is given in the table 'bulkRNAgenesets'
   require(DBI)
   bulkGS <- dbReadTable(con,'bulkRNAgenesets',row.names='geneset')
   bulkGS <- apply(bulkGS,1,function(x) dbGetQuery(con,x)$GeneID)
@@ -179,13 +246,12 @@ getBulkRNA <- function(con){
 }
 
 getRnaDat <- function(con){
+  # accepts a database connection
+  # returns a list of data.frames, each of which is a pairiwise comparison from bulk RNA-seq or microarrays
   require(DBI)
   res <- splitByDistinct(
     con,'handr_rnaseq','comparison','GeneID,log2FoldChange,padj',row.names='GeneID'
   )
-  # foxf <- splitByDistinct(
-  #   con,'foxf_rnaseq','comparison','GeneID,log2FoldChange,padj',row.names='GeneID'
-  # )
   res$MA_dnFGFR_LacZ_10hpf <- dbGetQuery(
     con,
     'SELECT x AS GeneID,microarray.Mesp_dnfgfrvwt_logfc AS log2FoldChange,microarray.dnfgfrvwt_pval AS padj FROM (SELECT DISTINCT GeneID AS x FROM handr_rnaseq) LEFT JOIN microarray ON x=microarray.GeneID',
@@ -205,6 +271,9 @@ getRnaDat <- function(con){
 }
 
 getPeaksets <- function(con){
+  # accepts a database connection
+  # returns a list of PeakID vectors split by peak sets
+  # the selection of peaks in each peak set is given in the 'peaksets' table
   require(DBI)
   peaksets <- dbReadTable(con,'peaksets',row.names='peakset')
   peaksets <- apply(peaksets,1,function(x) dbGetQuery(con,x)$PeakID)
@@ -212,16 +281,18 @@ getPeaksets <- function(con){
 }
 
 getAtac <- function(con)  splitByDistinct(
+  # accepts a database connection
+  # returns a list of data.frames, each of which is a pairwise comparison from ATAC-seq
   con,'atacseq','comparison','PeakID,log2FoldChange,padj',row.names='PeakID'
 )
 
 getAtacLib <- function(con,lib) {
+  # accepts a database connection and the name of an ATAC-seq comparison in the table atacseq
+  # returns a data.frame with the ATAC-seq comparison specified
   require(DBI)
   sapply(lib,function(x) dbGetQuery(
     con,
     paste0('SELECT PeakID,log2FoldChange,padj FROM atacseq WHERE comparison="',x,'"'),
     row.names="PeakID"
   ),simplify = F)
-  # dbBind(query,list(lib=lib))
-  # return(dbFetch(query,row.names="PeakID"))
 }

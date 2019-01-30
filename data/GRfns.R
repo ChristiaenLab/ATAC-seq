@@ -1,99 +1,8 @@
-GRexpand <- function(x,start,end=start){
-  x@ranges <- IRanges(
-    x@ranges@start-start,
-    width=x@ranges@width+start+end)
-  return(x)
-}
-
-bedGR <- function(x,...) {
-  x <- as.list(read.table(x,...))
-  x$seqnames <- Rle(x[[1]])
-  x$ranges <- IRanges(as.numeric(x[[2]]),as.numeric(x[[3]]))
-  x$strand <- Rle(rep('*',length(x[[3]])))
-  return(do.call(GRanges,x))
-}
-
-GRbed <- function(x,filename,path){
-  x <- cbind(
-    as.vector(seqnames(x)),
-    ranges(x)@start,ranges(x)@start+ranges(x)@width,
-    as.vector(strand(x)),as.data.frame(mcols(x)))
-  sapply(2:3,function(y) x[x[,y]<0,y] <<- 0)
-  x <- x[!apply(
-    x[,2:3]==0,1,
-    function(y) do.call('&',as.list(y))
-    ),] 
-  path <- paste(path, Sys.Date(), sep = '/')
-  if(!dir.exists(path)) dir.create(path,recursive = T)
-  filename <- paste(path, filename, sep = '/')
-  write.table(x,paste(filename,'bed',sep='.'),sep='\t', quote = F,col.names = F,row.names = F)
-}
-
-readPeakGenes <- function(file){
-  peaks <- read.table(file,colClasses = 'character')
-  peaks$peak <- apply(peaks[,1:3],1,paste,collapse=':')
-  peaks <- sapply(
-    unique(peaks$peak),function(x) paste(unique(peaks[peaks$peak==x,9]),collapse = ';'))
-  peaks <- cbind(peaks,sapply(
-    peaks,
-    function(x) paste0(
-      gene.names[unlist(strsplit(as.character(x),';')),],collapse = ';')))
-  return(peaks)
-}
-
-readGTF <- function(gtf){
-  gtf <- read.delim(gtf, header=FALSE)
-  colnames(gtf) <- c("seqname", "source", "feature", "start", "end", "score", "strand", "frame",     
-                     "attributes")
-  gtf$GeneID <- as.factor(sub(".*gene_id\\s*(.*);", "\\1", gtf$attributes))
-  # gtf$featureID <- paste0(gtf$GeneID,';',gtf$feature)
-  # gtf <- gtf[order(gtf$seqname, gtf$start), ]
-  # gtf1 <- gtf1[!duplicated(gtf1$GeneID), ] # Returns only rows with most left gene positions.
-  # gtf2 <- gtf[order(gtf$seqname, -gtf$start), ]
-  # gtf2 <- gtf2[!duplicated(gtf2$GeneID), ] # Returns only rows with most right gene positions.
-  # gtf1 <- gtf1[order(gtf1$GeneID), ]
-  # gtf2 <- gtf2[order(gtf2$GeneID), ]
-  # gtf1[,5] <- gtf2[,5] # Assigns proper end postions
-  # gtfgenepos <- gtf1 # Returns gtf containing only start/end positions for all genes
-  # gtfgenepos <- gtfgenepos[order(gtfgenepos$seqname, gtfgenegtfpos$start), ]
-  gtf <- makeGRangesListFromDataFrame(gtf,'GeneID',keep.extra.columns=T)
-  
-  # cds <- gtf[]
-  # cds <- reduce(gtf[grep('CDS',names(gtf))])
-  # names(cds) <- sub(';CDS','',names(cds))
-  # utr <- range(gtf[grep('exon',names(gtf))])
-  # names(utr) <- sub(";exon",'',names(utr))
-  # introns <- disjoin(cds)
-  # utr <- 
-  return(gtf)
-}
-
-subsetGRList <- function(x,expr){
-  sel <- eval(expr,elementMetadata(unlist(x)))
-  sel <- relist(sel,x)
-  res <- lapply(1:length(x), function(i) x[[i]][sel[[i]]])
-  res <- do.call(GRangesList,res)
-  names(res) <- names(x)
-  return(res)
-}
-
-parseGTF <- function(gtf){
-  require(GenomicRanges)
-  gtf <- readGTF(gtf)
-  
-  gtf <- reduce(gtf)
-  # cds <- subsetGRList(gtf,expression(feature=='CDS'))
-  # utr <- subsetGRList(gtf,expression(feature=='exon'))
-  introns <- disjoin(gtf)
-  genes <- unlist(range(gtf))
-  intergenic <- gaps(genes)
-  
-  # gtfgaps <- gaps(gtf)
-  # genes <- sapply(unique(gtf@elementMetadata$GeneID),function(x) range(gtf[gtf@elementMetadata$GeneID==x]))
-}
-
 getFeatures <- function(
+# accepts a GFF file name
+# returns a list of GRangesLists corresponding to genomic features
   gff,
+  gene.names,
   tssflank=c(107,107),
   ttsflank=c(200,200),
   promoterflank=c(promoter500=500,promoter1k=500),
@@ -101,16 +10,12 @@ getFeatures <- function(
 ){
   require(GenomicRanges)
   require(GenomicFeatures)
+  gff <- import(gff)
   gff <- gff[sapply(elementMetadata(gff)$Parent,function(x) length(x)>0)]
   elementMetadata(gff)$GeneID <- unlist(sub('\\.v.*','',elementMetadata(gff)$Parent))
   elementMetadata(gff)$GeneName <- gene.names[elementMetadata(gff)$GeneID,]
   txdb <- makeTxDbFromGRanges(gff)
   
-  # tpt <- transcriptsBy(txdb)
-  # fputr <- fiveUTRsByTranscript(txdb)
-  # tputr <- threeUTRsByTranscript(txdb)
-  # cds <- cdsBy(txdb,'gene')
-  # exons <- exonsBy(txdb,'gene')
   introns <- reduce(unlist(intronsByTranscript(txdb)))
   
   fputr <- gff[elementMetadata(gff)$type=='five_prime_UTR']
@@ -122,10 +27,6 @@ getFeatures <- function(
   gene <- gff[elementMetadata(gff)$type%in%c("CDS",'five_prime_UTR','three_prime_UTR')]
   gene <- split(gene,elementMetadata(gene)$GeneID)
   genebody <- unlist(range(gene,ignore.strand=T))
-  # geneGaps <- gaps(reduce(unlist(gene),ignore.strand=T))
-  # introns <- first(findOverlapPairs(geneGaps,genebody,type='within'))
-  # introns <- mapply(gaps,reduce(gene,ignore.strand=T),start=start(genebody),end=end(genebody))
-  # introns <- do.call(GRangesList,introns)
   
   tpt <- unlist(range(split(gff,elementMetadata(gff)$ID)))
   elementMetadata(tpt)$GeneID <- sub('\\.v.*','',names(tpt))
@@ -136,10 +37,6 @@ getFeatures <- function(
     tssflank[2]
   ))
   
-  # cds <- reduce(cdsBy(txdb,'gene'))
-  # exon <- exonsBy(gff,'gene')
-  # tpt <- transcriptsBy(txdb,'gene')
-  # intergenic <- gaps(tpt)
   tss <- promoters(txdb,tssflank[1],tssflank[2])
   dir.export(promoters(
     txdb,
@@ -147,10 +44,10 @@ getFeatures <- function(
     tssflank[2]
   ),'promoters',format = 'gtf')
   elementMetadata(tss)$GeneID <- sub('\\.v.*','',elementMetadata(tss)$tx_name)
-  dir.export(tss,'tssCenter',path)
+  dir.export(tss,'tssCenter',format = 'gtf')
   tss <- split(tss,elementMetadata(tss)$GeneID)
   tss <- reduce(tss)
-  dir.export(tss,'TSS',path)
+  dir.export(tss,'TSS')
   
   tts <- flank(tpt,ttsflank[1],start = F)
   tts <- resize(tts,sum(ttsflank),fix = 'end')
@@ -162,8 +59,6 @@ getFeatures <- function(
     names(promoterflank)
   )
   promoters <- promoters[length(promoters):1]
-  # promoter500 <- flank(tpt,500)
-  # promoter1k <- flank(promoter500,500)
   intergenic <- gaps(reduce(union(
     unlist(Reduce(
       union,
@@ -185,32 +80,23 @@ getFeatures <- function(
   ))
 }
 
-getAnn <- function(query,subject,colname){
-  ann <- findOverlaps(query,subject)
-  ann <- split(ann@to,ann@from)
-  ann <- sapply(ann,function(x) unique(names(subject)[x]))
-  ann <- sapply(ann,paste,collapse = ';')
-  elementMetadata(query)[,colname] <- NA
-  elementMetadata(query)[,colname][as.numeric(names(ann))] <- unlist(ann)
-  return(query)
-}
-
 annotatePeaks <- function(peaks,genes,window=10000,features=NULL){
+  # peaks is a GRanges of peaks 
+  # genes is a GRanges of gene loci
+  # window is the number of bps genes will be expanded in either direction
+  # features is a named list of GRangesLists
+  
+  # returns a list with attributes:
+    # annotation  Hits object for overlaps between peaks and genes
+    # peaks   the input peaks
+    # genes   the input genes
+    # window  the input genes expanded by window
+    # peakToGene  a list of GeneID vectors split by PeakID
+    # geneToPeak  a list of PeakID vectors split by GeneID
+    # features  a data. frame with columns indicating whether each peak overlaps with each feature in features
   require(GenomicRanges)
   genes <- resize(genes,width(genes)+2*window,'center')
   annotation <- findOverlaps(peaks,genes)
-  # names(peaks) <- paste(seqnames(peaks),start(peaks)-1,end(peaks),sep = ':')
-  # names(peaks) <- Reduce(
-  #   function(x,y){
-  #     x <- unlist(strsplit(x,'\\.'))
-  #     if(y==x[1]) {
-  #       return(paste0(y,'.',as.character(as.numeric(x[2])+1)))
-  #     }else return(paste0(y,'.',as.character(1)))
-  #   },
-  #   seqnames(peaks),'KhC1.0',
-  #   accumulate=T
-  # )[-1]
-  # seqnames(peaks) <- droplevels(seqnames(peaks))
   names(peaks) <- unlist(mapply(
     paste0,
     as.character(levels(droplevels(seqnames(peaks)))),'.',
@@ -237,20 +123,19 @@ annotatePeaks <- function(peaks,genes,window=10000,features=NULL){
         row.names = names(peaks)
       ),res$features
     )
-    # row.names(res$features) <- names(peaks)
   }
   return(res)
 }
 
 splitBy <- function(from,to,names,elements){
+  # wrapper function for split ensuring each vector contains only unique values
   res <- split(elements[to],names[from])
   res <- sapply(res,unique)
-  # res <- sapply(elements,function(x) elements[x])
-  # names(res) <- names[as.numeric(names(res))]
   return(res)
 }
 
 GRpeakToGene <- function(ann,peaks=names(ann$peaks)){
+  # splits a findOverlaps result with peaks as the query and genes as the subject by peaks 
   genes <- split(ann$annotation@to,ann$annotation@from)
   genes <- sapply(genes,unique)
   genes <- sapply(genes,function(x) names(ann$genes)[x])
@@ -259,6 +144,7 @@ GRpeakToGene <- function(ann,peaks=names(ann$peaks)){
 }
 
 GRgeneToPeak <- function(ann,peaks=names(ann$peaks)){
+  # splits a findOverlaps result with peaks as the query and genes as the subject by genes
   peaks <- split(ann$annotation@from,ann$annotation@to)
   peaks <- sapply(peaks,unique)
   peaks <- sapply(peaks,function(x) names(ann$peaks)[x])
@@ -266,16 +152,16 @@ GRgeneToPeak <- function(ann,peaks=names(ann$peaks)){
   return(peaks)
 }
 
+geneSizeBinom <- function(
+  genes,annotation,bg,
+  alternative='two.sided',conf.level=.99,...
+){
 # runs a binomial test for enrichment of peaks in annotation associated to genes
 # compared to bg
 # the expected probability is the fraction of bg covered by genes
 # genes should be a vector of GeneIDs
 # annotation should be a list of PeakID vectors with the GeneID as names(annotation)
 # bg should be a GRanges of genes
-geneSizeBinom <- function(
-  genes,annotation,bg,
-  alternative='two.sided',conf.level=.99,...
-){
   windowSize <- sum(width(reduce(bg)))
   query <- sapply(genes,intersect,names(bg),simplify = F)
   querySize <- sapply(query,function(i) sum(width(reduce(bg[i]))))

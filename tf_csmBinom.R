@@ -1,22 +1,26 @@
+# Figs. 
 library(GenomicRanges)
 library(GenomicFeatures)
 library(rtracklayer)
 library(optparse)
 library(DBI)
 library(BSgenome.Cintestinalis.KH.KH2013)
-source('dirfns.R')
-source("GRfns.R")
-source("DEfns.R")
+source('data/dirfns.R')
+source("data/GRfns.R")
+source("data/DESeqFns.R")
 source('data/sqlfns.R')
 
 con <- dbConnect(RSQLite::SQLite(),'data/atacCiona.db')
-gene.names <- getGeneNames(con)
 scrna <- getScRNA(con)
 bulkGS <- getBulkRNA(con)
 peakGeneAnnotation <- getAnnotation(con)
+peaksets <- getPeaksets(con)
+peakome <- peakGeneAnnotation$peaks
+
+tfs <- dbReadTable(con,'TFs_from_GHOST',row.names="GeneID")
+csm <- dbReadTable(con,'signaling_molecules_from_GHOST',row.names="GeneID")
 
 DEgenes <- intersect(union(unlist(scrna[-11]),unlist(bulkGS)),names(peakGeneAnnotation$geneToPeak))
-kh2013 <- getFeatures(import('KH.KHGene.2013.gff3'))
 
 tf.csmBinom <- geneSizeBinom(
   list(TF=tfs,CSM=csm),peakGeneAnnotation,peakGeneAnnotation$genewindow
@@ -25,6 +29,7 @@ DEtf.csmBinom <- geneSizeBinom(
   list(TF=tfs,CSM=csm),peakGeneAnnotation,peakGeneAnnotation$genewindow[DEgenes]
 )
 
+# Fig. S3G
 dir.eps('DEtf.csmBar')
 barplot(
   t(DEtf.csmBinom[,c('null.value','estimate')])*100,
@@ -42,51 +47,8 @@ segments(
   seq(2.5,by=3,length.out = nrow(DEtf.csmBinom)),DEtf.csmBinom[,"upperConf"]*100
 )
 dev.off()
-dir.eps('tf.csmBar')
-barplot(
-  t(tf.csmBinom[,c('null.value','estimate')])*100,
-  beside = T, 
-  # names.arg = c(
-  #   'Promoter 1kb',"Promoter 0.5kb","TSS","5' UTR","CDS","Intron","3' UTR","TTS","Intergenic"
-  # ),
-  las=2,legend.text = c(
-    '% gene coverage','% peaks overlapping DE genes'
-  ),args.legend = list(x='topright'),
-  ylim=c(0,max(tf.csmBinom[,"upperConf"])*100)
-)
-segments(
-  seq(2.5,by=3,length.out = nrow(tf.csmBinom)),tf.csmBinom[,"lowerConf"]*100,
-  seq(2.5,by=3,length.out = nrow(tf.csmBinom)),tf.csmBinom[,"upperConf"]*100
-)
-dev.off()
-
-
-geneLenBinom <- geneSizeBinom(
-  names(peakGeneAnnotation$geneToPeak),peakGeneAnnotation,peakGeneAnnotation$genewindow
-)
-DEgeneLenBinom <- geneSizeBinom(
-  DEgenes,peakGeneAnnotation,peakGeneAnnotation$genewindow[DEgenes]
-)
-geneLenBinomDat <- cbind(
-  n=vapply(geneLenBinom,'[[',0,'statistic'),
-  sapply(geneLenBinom,'[[','p.value'),
-  p.adjust(sapply(geneLenBinom,'[[','p.value')),
-  sapply(geneLenBinom,'[[','null.value'),
-  sapply(geneLenBinom,'[[','estimate')
-)
-DEgeneLenBinomDat <- cbind(
-  n=vapply(DEgeneLenBinom,'[[',0,'statistic'),
-  sapply(DEgeneLenBinom,'[[','p.value'),
-  p.adjust(sapply(DEgeneLenBinom,'[[','p.value')),
-  sapply(DEgeneLenBinom,'[[','null.value'),
-  sapply(DEgeneLenBinom,'[[','estimate')
-)
-dir.tab(geneLenBinomDat,'geneLenBinom')
-dir.tab(DEgeneLenBinomDat,'DEgeneLenBinom')
 
 de.daAnn <- mergeGenePeak(con,DEgenes,Reduce(union,peaksets))
-
-cor(rna$MA_dnFGFR_LacZ_10hpf[de.daAnn$GeneID,])
 
 de.daAnn <- list(
   geneToPeak=split(de.daAnn$PeakID,de.daAnn$GeneID),
@@ -244,7 +206,70 @@ peakGeneFeat <- data.frame(
   TSCp=sapply(tsc.binom.feat,'[[','p.value')
 )
 
-dir.eps('peakome.genome.feat',path)
+# Fig. S1B
+dir.pdf('percentpeakome')
+barplot(
+  t(peakGeneFeat[,c('featCoverageByPeakome','peakomeCoverageByFeature')])*100,
+  las=3,beside = T,legend.text = c(
+    "% feature covered by peakome","%peakome covered by feature"
+  ),args.legend = list(x='topleft'),
+  ylim = c(0,max(peakGeneFeat[-nrow(peakGeneFeat),c('featCoverageByPeakome','peakomeCoverageByFeature')]*100))
+)
+dev.off()
+
+dir.tab(peakGeneFeat,'peakGeneCoverage')
+
+# Fig. S1C
+tmp <- split(peakGeneAnnotation$peaks,seqnames(peakGeneAnnotation$peaks))
+strand(tmp) <- "+"
+
+peakGC <- letterFrequency(Views(BSgenome.Cintestinalis.KH.KH2013,peakGeneAnnotation$peaks),"GC")
+
+featGC <- apply(peakGeneAnnotation$features,2,function(x) sum(peakGC[x])/sum(width(peakGeneAnnotation$peaks[x])))
+
+peakGC/width(peakGeneAnnotation$peaks)
+
+peakomeStr <- extractTranscriptSeqs(BSgenome.Cintestinalis.KH.KH2013,tmp)
+peakomeFreq <- apply(letterFrequency(peakomeStr,letters = c("A","C","T","G")),2,sum)
+peakomeFreq <- peakomeFreq/sum(peakomeFreq)
+peakomeGC <- sum(peakomeFreq[c("C","G")])
+genomeFreq <- sapply(
+  seqnames(BSgenome.Cintestinalis.KH.KH2013),
+  function(x)letterFrequency(BSgenome.Cintestinalis.KH.KH2013[[x]],c("A","C","T","G"))
+)
+genomeFreq <- apply(genomeFreq,1,sum)
+genomeFreq <- genomeFreq/sum(genomeFreq)
+genomeGC <- sum(genomeFreq[c("C","G")])
+
+peakomeGC <- getGC(peakGeneAnnotation$peaks)
+featGC <- apply(peakGeneAnnotation$features,2,function(x) getGC(peakGeneAnnotation$peaks[x]))
+featGC$intergenic <- getGC(peakGeneAnnotation$peaks[!apply(peakGeneAnnotation$features,1,any)])
+cdsGC <- getGC(reduce(unlist(cds)))
+
+ncGC <- getGC(gaps(reduce(unlist(GRangesList(reduce(unlist(cds)),peakGeneAnnotation$peaks)))))
+intersect(gaps(reduce(unlist(cds))),peakGeneAnnotation$peaks)
+ncpeakGC <- getGC(setdiff(peakGeneAnnotation$peaks,reduce(unlist(cds)),ignore.strand=T))
+
+barplot(c(CDS=cdsGC,NC=ncGC,peakome=peakomeGC)*100,ylim = c(30,50))
+dir.eps('GCcontent')
+barchart(c(CDS=cdsGC,NC=ncGC,peakome=peakomeGC)*100,xlim=c(30,50),col='blue')
+dev.off()
+
+#Fig. S1D
+peakGC <- letterFrequency(Views(BSgenome.Cintestinalis.KH.KH2013,peakGeneAnnotation$peaks),"GC")
+
+featGC <- apply(peakGeneAnnotation$features[,-1:-3],2,function(x) sum(peakGC[x])/sum(width(peakGeneAnnotation$peaks[x])))
+
+genomeFeatGC <- sapply(genomefeat,function(x) sum(
+  letterFrequency(Views(BSgenome.Cintestinalis.KH.KH2013,x),"GC")
+)/sum(width(x)))
+
+dir.eps('GCfeat')
+barplot(rbind(featGC,genomeFeatGC),las=2,beside = T)
+dev.off()
+
+# Fig. S1E
+dir.eps('peakome.genome.feat')
 barplot(
   t(peakGeneFeat[-nrow(peakGeneFeat),c(
     'DEpeaksInFeature','peaksInFeature','featInGenome'
@@ -268,7 +293,8 @@ mapply(
 )
 dev.off()
 
-dir.eps('peakomeTSCfeat',path)
+# Fig. S2D
+dir.eps('peakomeTSCfeat')
 barplot(
   t(peakGeneFeat[c(-nrow(peakGeneFeat)+1),'TSCpeaksInFeature',drop=F])*100,beside = T, 
   las=2,ylim = c(0,max(peakGeneFeat[c(-nrow(peakGeneFeat)+1),'TSCupperConf']*100))
@@ -281,51 +307,4 @@ mapply(
   peakGeneFeat[c(-nrow(peakGeneFeat)+1),'TSCupperConf']*100
 )
 dev.off()
-
-dir.pdf('percentpeakome',path)
-barplot(
-  t(peakGeneFeat[,c('featCoverageByPeakome','peakomeCoverageByFeature')])*100,
-  las=3,beside = T,legend.text = c(
-    "% feature covered by peakome","%peakome covered by feature"
-  ),args.legend = list(x='topleft'),
-  # names.arg = c(
-  #   'Promoter 1kb',"Promoter 0.5kb","TSS","5' UTR","CDS","Intron","3' UTR","TTS","Intergenic","Genome"
-  # ),
-  ylim = c(0,max(peakGeneFeat[-nrow(peakGeneFeat),c('featCoverageByPeakome','peakomeCoverageByFeature')]*100))
-)
-dev.off()
-
-dir.tab(peakGeneFeat,'peakGeneCoverage',path)
-
-peakGC <- letterFrequency(Views(BSgenome.Cintestinalis.KH.KH2013,peakGeneAnnotation$peaks),"GC")
-
-featGC <- apply(peakGeneAnnotation$features[,-1:-3],2,function(x) sum(peakGC[x])/sum(width(peakGeneAnnotation$peaks[x])))
-
-genomeFeatGC <- sapply(genomefeat,function(x) sum(
-  letterFrequency(Views(BSgenome.Cintestinalis.KH.KH2013,x),"GC")
-)/sum(width(x)))
-
-dir.eps('GCfeat')
-barplot(rbind(featGC,genomeFeatGC),las=2,beside = T)
-dev.off()
-
-# dir.pdf('features',path)
-# barplot(featcount/sum(featcount)*100,las=2)
-# dev.off()
-
-promoter.distal <- peakGeneAnnotation
-promoter.distal$promoterPeaks <- splitBy(
-  from(promoter.distal$promoterAnn),
-  to(promoter.distal$promoterAnn),
-  names(promoter.distal$peaks),
-  names(promoter.distal$genes)
-)
-promoter.distal$distalPeaks <- promoter.distal$peakToGene[
-  !names(promoter.distal$peakToGene)%in%names(promoter.distal$promoterPeaks)
-]
-promoter.distal$peakToGene <- append(promoter.distal$promoterPeaks,promoter.distal$distalPeaks)
-promoter.distal$geneToPeak <- reshape2::melt(promoter.distal$peakToGene)
-promoter.distal$geneToPeak <- sapply(promoter.distal$geneToPeak,as.character)
-promoter.distal$geneToPeak <- split(promoter.distal$geneToPeak[,2],promoter.distal$geneToPeak[,1])
-save(promoter.distal,file = mkdate('promoter.distal','Rdata',path))
 

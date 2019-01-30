@@ -261,38 +261,3 @@ peakomeHyper <- data.frame(
   # n.tscOverlap=tscOverlapCt,p.tscOverlap=tscOverlapHyper,fdr.tscOverlap=p.adjust(tscOverlapHyper,'fdr')
 )
 dir.tab(peakomeHyper,'promoterHyper')
-
-tmp <- split(peakGeneAnnotation$peaks,seqnames(peakGeneAnnotation$peaks))
-strand(tmp) <- "+"
-
-peakGC <- letterFrequency(Views(BSgenome.Cintestinalis.KH.KH2013,peakGeneAnnotation$peaks),"GC")
-
-featGC <- apply(peakGeneAnnotation$features,2,function(x) sum(peakGC[x])/sum(width(peakGeneAnnotation$peaks[x])))
-
-peakGC/width(peakGeneAnnotation$peaks)
-
-peakomeStr <- extractTranscriptSeqs(BSgenome.Cintestinalis.KH.KH2013,tmp)
-peakomeFreq <- apply(letterFrequency(peakomeStr,letters = c("A","C","T","G")),2,sum)
-peakomeFreq <- peakomeFreq/sum(peakomeFreq)
-peakomeGC <- sum(peakomeFreq[c("C","G")])
-genomeFreq <- sapply(
-  seqnames(BSgenome.Cintestinalis.KH.KH2013),
-  function(x)letterFrequency(BSgenome.Cintestinalis.KH.KH2013[[x]],c("A","C","T","G"))
-)
-genomeFreq <- apply(genomeFreq,1,sum)
-genomeFreq <- genomeFreq/sum(genomeFreq)
-genomeGC <- sum(genomeFreq[c("C","G")])
-
-peakomeGC <- getGC(peakGeneAnnotation$peaks)
-featGC <- apply(peakGeneAnnotation$features,2,function(x) getGC(peakGeneAnnotation$peaks[x]))
-featGC$intergenic <- getGC(peakGeneAnnotation$peaks[!apply(peakGeneAnnotation$features,1,any)])
-cdsGC <- getGC(reduce(unlist(cds)))
-
-ncGC <- getGC(gaps(reduce(unlist(GRangesList(reduce(unlist(cds)),peakGeneAnnotation$peaks)))))
-intersect(gaps(reduce(unlist(cds))),peakGeneAnnotation$peaks)
-ncpeakGC <- getGC(setdiff(peakGeneAnnotation$peaks,reduce(unlist(cds)),ignore.strand=T))
-
-barplot(c(CDS=cdsGC,NC=ncGC,peakome=peakomeGC)*100,ylim = c(30,50))
-dir.eps('GCcontent')
-barchart(c(CDS=cdsGC,NC=ncGC,peakome=peakomeGC)*100,xlim=c(30,50),col='blue')
-dev.off()
