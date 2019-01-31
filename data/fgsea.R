@@ -1,21 +1,19 @@
-dir.fgsea <- function(
-  deseq='2018-05-08/peakome/DA_LRT',peaklists='2018-03-13/peakome/scRNApeaks'
-) {
-  peaklists <- lrtab(peaklists,read.bed,'\\.bed')
-  load(paste0(deseq,'/res.Rdata'))
-  lapply(
-    names(res),
-    function(x) get.fgsea(res[[x]],x,peaklists)
-  )
-}
-
-get.fgsea <- function(atac,file,peaklists,p=1,lfc=0,minSize=5,path='gsea',plotset=F,nperm=1000){
+get.fgsea <- function(atac,file,peaklists,p=1,lfc=0,minSize=5,path='gsea',nperm=10000){
+  # wrapper function for fgsea
+  # atac        a data.frame of differential accessibility results with columns "log2FoldChange" and "padj"
+  # file        output subdirectory to save results
+  # peaklists   a list of PeakID vectors treated as gene sets
+  # p           padj cutoff for filtering atac
+  # lfc         log2FoldChange cutoff for filtering atac
+  # minSize     minimum length for filtering vectors in peaklists
+  # path        top-level directory to write file
+  # nperm       Number of permutations to do. Minimial possible nominal p-value is about 1/nperm
   require('fgsea')
   require('ggplot2')
   
   path <- paste0(path,'/',file)
   
-  atac <- get.sig(atac,lfc=lfc,p=p)
+  atac <- sig.sub(atac,lfc=lfc,p=p)
   ranks <- atac$log2FoldChange
   names(ranks) <- row.names(atac)
   peaklists <- sapply(peaklists,function(x) x[x%in%names(ranks)])
@@ -27,17 +25,11 @@ get.fgsea <- function(atac,file,peaklists,p=1,lfc=0,minSize=5,path='gsea',plotse
       stats = ranks[order(ranks)],
       minSize=minSize,
       maxSize=length(ranks)-1,
-      nperm=1000
-    ), ranks=ranks,peaklists=peaklists
+      nperm=nperm
+    ), 
+    ranks=ranks,
+    peaklists=peaklists
   )
   save(fgseaRes,file = mkdate('fgseaRes','Rdata',path))
-  
- # if(length(fgseaRes$peaklists)<100&length(fgsea$peaklists)>0&plotset){
- #   lapply(names(fgseaRes$peaklists),function(x) dir.gg(
- #     plotEnrichment(fgseaRes$peaklists[[x]], fgseaRes$ranks),x,path
- #   ))
- #   dir.pdf('gseaTable',path)
- #   plotGseaTable(fgseaRes$peaklists,fgseaRes$ranks,fgseaRes$fgsea,gseaParam = 0.5)
- #   dev.off()
- # }
+  return(fgseaRes$fgsea[,-ncol(fgseaRes$fgsea)])
 }

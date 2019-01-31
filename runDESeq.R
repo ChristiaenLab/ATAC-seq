@@ -1,4 +1,5 @@
 library(DBI)
+library(DESeq2)
 
 source("data/DESeqFns.R")
 source('data/dirfns.R')
@@ -75,23 +76,30 @@ lacz <- get.dds(
   test='LRT',reduced=~0+method,cooksCutoff=F,alpha=.05
 )
 
-peakdat <- lrtab('dat/peaks/',read.csv,'csv',row.names=1)
-peakdat <- lapply(peakdat,function(x){
-  row.names(x) <- peak.id.coord[row.names(x),]
-  return(x)
-})
+peakdat <- lapply(
+  list(mesp,handr,lacz,gfp),
+  function(x) counts(x$dds,normalized=T)
+)
 
 mapply(
   dbWritePeaks,
-  name=names(peakdat),
+  name=c('mespct','handrct','timect','tissuect'),
   peakdat,
   MoreArgs = list(conn=con,row.names="PeakID",overwrite=T)
 )
 
-atac <- lapply(atac,function(x){
-  row.names(x) <- peak.id.coord[row.names(x),]
-  return(x)
-})
+atac <- sapply(
+  Reduce(
+    function(x,y) append(x, y$res),
+    list(mesp,handr,lacz,gfp),
+    init = NULL
+  ),
+  function(z) cbind(
+    PeakID=row.names(z),
+    as.data.frame(z),
+    stringsAsFactors=F
+  ),
+  simplify = F
+)
 
-atac <- sapply(atac,function(x) cbind(PeakID=row.names(x),as.data.frame(x),stringsAsFactors=F),simplify = F)
 dbWritePeaks(con,'atacseq',melt.rename(atac,'comparison'))
