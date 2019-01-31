@@ -31,5 +31,5 @@ get.fgsea <- function(atac,file,peaklists,p=1,lfc=0,minSize=5,path='gsea',nperm=
     peaklists=peaklists
   )
   save(fgseaRes,file = mkdate('fgseaRes','Rdata',path))
-  return(fgseaRes$fgsea[,-ncol(fgseaRes$fgsea)])
+  return(as.data.frame(fgseaRes$fgsea)[,-ncol(fgseaRes$fgsea)])
 }
