@@ -106,3 +106,62 @@ zfilt <- function(dev,zCutoff) subMeta(dev,apply(
     dev@assays$data$z,1,function(x) any(x>opts$zCutoff)
   ))
 
+getChromVAR <- function(
+  expDesign,peaks,motifs,
+  resizeWidth=200,
+  bamDir='/scratch/kaw504/atacCiona/atac/bam'
+){
+  # wrapper function for chromVAR::computeDeviations
+  # 
+  require(chromVAR)
+  require(BSgenome.Cintestinalis.KH.KH2013)
+  require(motifmatchr)
+  require(TFBSTools)
+  expDesign$condtime <- apply(expDesign[,-1],1,paste,collapse='')
+  ncondtime <- table(expDesign$condtime)
+  design <- expDesign[expDesign$condtime%in%names(ncondtime)[ncondtime>1],]
+  
+  seqlengths(peaks) <- seqlengths(BSgenome.Cintestinalis.KH.KH2013)[seqlevels(peaks)]
+  
+  if(resizeWidth){
+    peaks <- resize(peaks,width = resizeWidth,fix = 'center')
+    peaks <- trim(peaks)
+    peaks <- resize(peaks,width = resizeWidth,fix = 'end')
+    peaks <- trim(peaks)
+    peaks <- resize(peaks,width = resizeWidth,fix = 'start')
+  }
+  
+  counts <- getCounts(
+    paste0(bamDir,'/',row.names(design)),
+    peaks, paired =  TRUE,  format = "bam", colData = DataFrame(design))
+  counts <- addGCBias(
+    counts, genome = BSgenome.Cintestinalis.KH.KH2013)
+  
+  matches <- matchMotifs(
+    motifs, counts, genome = BSgenome.Cintestinalis.KH.KH2013
+  )
+  
+  # computing deviations
+  dev <- computeDeviations(
+    object = counts,  annotations = matches)
+  mcols(dev) <- cbind(
+    mcols(dev),
+    as.data.frame(
+      t(sapply(tags(motifs),unlist)),
+      stringsAsFactors=F
+    )
+  )
+  return(dev)
+}
+
+chromVarTable <- function(dev,groups='condtime'){
+  require(SummarizedExperiment)
+  res <- deviationScores(dev)
+  colnames(res) <- colData(dev)$Name
+  res <- cbind(res,differentialDeviations(dev,groups = groups))
+  res <- cbind(
+    as.data.frame(mcols(dev)[,c('name',"Family_Name")]),
+    res
+  )
+  return(res)
+}
