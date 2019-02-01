@@ -11,12 +11,12 @@ avgZ <- function(dev){
   # return(do.call(cbind,res))
 }
 
-writeChromVarHmap <- function(x,p=0.05,z=2){
+writeChromVarHmap <- function(x,p=0.05,z=2,avgZ=F){
   require(SummarizedExperiment)
   require(chromVAR)
   load(paste0(x,'/deviations.Rdata'))
   dev <- dev[,-6]
-  hm <- chromVarHmap(dev,p,z)
+  hm <- chromVarHmap(dev,p,z,avgZ=avgZ)
   dir.eps(
     paste0(sub('.*\\/','',x),'fdr',as.character(p),'z',as.character(z)),
     height=nrow(hm@matrix)*.12+1,
@@ -26,7 +26,7 @@ writeChromVarHmap <- function(x,p=0.05,z=2){
   dev.off()
 }
 
-chromVarHmap <- function(dev,p,z){
+chromVarHmap <- function(dev,p,z,avgZ=F){
   require(ComplexHeatmap)
   require(circlize)
   require(TFBSTools)
@@ -66,7 +66,7 @@ chromVarHmap <- function(dev,p,z){
   mat[!is.finite(mat)] <- 0
   
   # average z-score
-  mat <- do.call(
+  if(avgZ) mat <- do.call(
     cbind,
     lapply(
       split(
@@ -153,6 +153,7 @@ devHmap <- function(x,p,z,avgZ=F){
     )
   )
   
+  row.names(mat) <- make.names(x$name,T)
   sel <- apply(mat,1,function(x) any(abs(x)>z))
   return(Heatmap(
     mat[sel,],
