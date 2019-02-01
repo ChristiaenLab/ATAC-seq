@@ -11,10 +11,17 @@ library(circlize)
 source('data/dirfns.R')
 source("data/chromVarPlotFns.R")
 
+con <- dbConnect(RSQLite::SQLite(),"data/atacCiona.db")
+
 # Fig. 2A
-writeChromVarHmap("2018-12-12/chromVAR/homer/mesp_all",.01,3)
+mapk10 <- dbReadTable(con,'mapk10ChromVAR')[,-8]
+writeDevHmap(mapk10,"")
+
+writeChromVarHmap("2019-01-22/chromVAR/homer/mesp_all",.01,3)
+writeChromVarHmap("../hpcscripts/2019-02-01/chromVAR/homer/mesp")
 
 # Fig. S20
+
 load("2019-01-22/chromVAR/homer/denovoASM/deviations.Rdata")
 asmDev <- dev
 load("2019-01-22/chromVAR/homer/denovoCardiac/deviations.Rdata")
@@ -38,17 +45,17 @@ sel <- (asmDiff$p_value_adjusted<.01|
   cardiacDiff$p_value_adjusted<.01)&
   (apply(abs(asmAvg)>1.5,1,any)|
      apply(abs(cardiacAvg)>1.5,1,any))&
-  !homer.family%in%c(
+  !mcols(asmDev)$Family_Name%in%c(
     "ERF","AP2EREBP","BBRBPC","C2C2dof","Stat","ZFHD","Myb","MYB",
     "MYBrelated","ND","Trihelix","WRKY","POU,Homeobox",
     "promoter","NA"
   )&
-  !is.na(homer.family)
+  !is.na(mcols(asmDev)$Family_Name)
 
 asmHmap <- Heatmap(
   asmAvg[sel,],
   cluster_columns = F,
-  split=homer.family[sel],
+  split=mcols(asmDev)$Family_Name[sel],
   col=colorRamp2(c(-3,0,3),c('blue','white','red')),
   row_names_gp = gpar(cex=.5),
   row_title_rot = 0,
@@ -60,7 +67,7 @@ asmHmap <- Heatmap(
 cardiacHmap <- Heatmap(
   cardiacAvg[sel,],
   cluster_columns = F,
-  split=homer.family[sel],
+  split=mcols(cardiacDev)$Family_Name[sel],
   col=colorRamp2(c(-3,0,3),c('blue','white','red')),
   row_names_gp = gpar(cex=.5),
   row_title_rot = 0,
