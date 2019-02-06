@@ -20,7 +20,7 @@ rna <- getRnaDat(con)[c(3:5,2)]
 rna$gfp.lacz <- rna$FoxF10hpf_LacZ10hpf
 rna$gfp.lacz$log2FoldChange <- 0
 rna$gfp.lacz$padj <- 1
-atacdat <- getAtacLib(con,c(
+atac <- getAtacLib(con,c(
   "condition_handr_dnFGFR_vs_control","condition_handr_MekMut_vs_control",
   "condition_mesp_dnFGFR_vs_control","condition_FoxF_KO_vs_control",
   "tissue_B7.5_vs_mesenchyme"
@@ -128,13 +128,13 @@ dbDiamondplot(
 # Figs. 1E, 2C, 3A, S17A
 mapply(
   scatterRnaAtac,
-  rna[c(
+  rna=rna[c(
     'condtime_foxfcamras18hpf_handrlacz18hpf',
     'condtime_handrdnfgfr18hpf_handrlacz18hpf',
     'FoxF10hpf_LacZ10hpf',
     'MA_dnFGFR_LacZ_10hpf'
   )],
-  atac[c(
+  atac=atac[c(
     'condition_handr_MekMut_vs_control', 
     'condition_handr_dnFGFR_vs_control',
     'condition_FoxF_KO_vs_control',
@@ -149,23 +149,26 @@ mapply(
     prime.denovo[c(5,7,1:4)]
   ),
   col=list(
-    c(1,'red','blue','red','blue'),
-    c(1,'red','blue','red','blue'),
-    c(1,'forestgreen','gray28','red','blue','red','blue'),
-    c(1,'forestgreen','gray28','red','blue','red','blue')
+    c('red','blue','red','blue'),
+    c('red','blue','red','blue'),
+    c('forestgreen','gray28','red','blue','red','blue'),
+    c('forestgreen','gray28','red','blue','red','blue')
   ),
   pch=list(
-    c(19,1,19,19,1,1),
-    c(19,1,19,19,1,1),
-    c(19,1,19,19,19,19,1,1),
-    c(19,1,19,19,19,19,1,1)
+    c(19,19,1,1),
+    c(19,19,1,1),
+    c(19,19,19,19,1,1),
+    c(19,19,19,19,1,1)
+  ),
+  ylim=list(
+    c(-1.5,2.5),F,F, c(-2.5,2.6)
   ),
   MoreArgs=list(
+    con=con,
     fdr=c(.05,.05),
     path='scatter',
-    gene.names=gene.names,
-    ann=peakGeneAnnotation,
-    xlab='log2(RNAseq FC)',ylab='log2(ATACseq FC)'
+    xlab='log2(RNAseq FC)',
+    ylab='log2(ATACseq FC)'
   )
 )
 # Fig. 1E Spearman correlation
@@ -193,51 +196,61 @@ cor(
 
 
 # Fig. 1F
-scrnaPeaks <- sapply(prime.denovo,mergeGenePeak,con=con)["PeakID",]
+
+atac <- getAtac(con)
+
+mespDnSig <- sig.sub(atac$condition_mesp_dnFGFR_vs_control,.5)
+timeSig <- sig.sub(atac$time_6hpf_vs_10hpf,.5)
+foxfSig <- sig.sub(atac$condition_FoxF_KO_vs_control,.45)
+
+scrnaGenePeak <- lapply(
+  prime.denovo,
+  mergeGenePeak,
+  intersect(row.names(timeSig),row.names(mespDnSig)),
+  con=con
+)
 
 dir.eps('mesp_dn_6_10')
 plot(
   atac$condition_mesp_dnFGFR_vs_control$log2FoldChange,
   atac$time_6hpf_vs_10hpf$log2FoldChange,
-  pch=19,col='gray',xlim=c(-2.5,2.5),ylim=c(-4,4)
+  pch=19,col='gray',xlim=c(-2.5,2.5),ylim=c(-4,4),
+  cex=1.5,cex.axis=1.5
 )
 
-mespDnSig <- sig.sub(atac$condition_mesp_dnFGFR_vs_control,.5)
-timeSig <- sig.sub(atac$time_6hpf_vs_10hpf,.5)
-foxfSig <- sig.sub(atac$condition_FoxF_KO_vs_control,.45)
 points(
   mespDnSig[scrnaGenePeak$ATM$PeakID,"log2FoldChange"],
   timeSig[scrnaGenePeak$ATM$PeakID,"log2FoldChange"],
-  pch=19,col='gray28'
+  pch=19,col='gray28',cex=1.5
 )
 points(
   mespDnSig[scrnaGenePeak$TVCP$PeakID,"log2FoldChange"],
   timeSig[scrnaGenePeak$TVCP$PeakID,"log2FoldChange"],
-  pch=19,col='forestgreen'
+  pch=19,col='forestgreen',cex=1.5
 )
 
 points(
   mespDnSig[scrnaGenePeak$primedASM$PeakID,"log2FoldChange"],
   timeSig[scrnaGenePeak$primedASM$PeakID,"log2FoldChange"],
-  pch=19,col='blue'
+  pch=19,col='blue',cex=1.5
 )
 
 points(
   mespDnSig[scrnaGenePeak$primedCardiac$PeakID,"log2FoldChange"],
   timeSig[scrnaGenePeak$primedCardiac$PeakID,"log2FoldChange"],
-  pch=19,col='red'
+  pch=19,col='red',cex=1.5
 )
 
 points(
   mespDnSig[scrnaGenePeak$denovoASM$PeakID,"log2FoldChange"],
   timeSig[scrnaGenePeak$denovoASM$PeakID,"log2FoldChange"],
-  pch=1,col='blue'
+  pch=1,col='blue',cex=1.5
 )
 
 points(
   mespDnSig[scrnaGenePeak$denovoCardiac$PeakID,"log2FoldChange"],
   timeSig[scrnaGenePeak$denovoCardiac$PeakID,"log2FoldChange"],
-  pch=1,col='red'
+  pch=1,col='red',cex=1.5
 )
 lines(c(0,0),c(-4,4))
 lines(c(-2.5,2.5),c(0,0))
@@ -254,44 +267,51 @@ cor(
 )
 
 # Fig. S10E
+scrnaGenePeak <- lapply(
+  prime.denovo,
+  mergeGenePeak,
+  intersect(row.names(foxfSig),row.names(mespDnSig)),
+  con=con
+)
 dir.eps('mesp_dn_foxf_ko')
 plot(
   atac$condition_mesp_dnFGFR_vs_control$log2FoldChange,
   atac$condition_FoxF_KO_vs_control$log2FoldChange,
-  pch=19,col='gray',xlim=c(-2.5,2.5),ylim=c(-2,2)
+  pch=19,col='gray',xlim=c(-2.5,2.5),ylim=c(-2,2),
+  cex=1.5,cex.axis=1.5
 )
 points(
   mespDnSig[scrnaGenePeak$ATM$PeakID,"log2FoldChange"],
   foxfSig[scrnaGenePeak$ATM$PeakID,"log2FoldChange"],
-  pch=19,col='gray28'
+  pch=19,col='gray28',cex=1.5
 )
 points(
   mespDnSig[scrnaGenePeak$TVCP$PeakID,"log2FoldChange"],
   foxfSig[scrnaGenePeak$TVCP$PeakID,"log2FoldChange"],
-  pch=19,col='forestgreen'
+  pch=19,col='forestgreen',cex=1.5
 )
 
 points(
   mespDnSig[scrnaGenePeak$primedASM$PeakID,"log2FoldChange"],
   foxfSig[scrnaGenePeak$primedASM$PeakID,"log2FoldChange"],
-  pch=19,col='blue'
+  pch=19,col='blue',cex=1.5
 )
 
 points(
   mespDnSig[scrnaGenePeak$primedCardiac$PeakID,"log2FoldChange"],
   foxfSig[scrnaGenePeak$primedCardiac$PeakID,"log2FoldChange"],
-  pch=19,col='red'
+  pch=19,col='red',cex=1.5
 )
 points(
   mespDnSig[scrnaGenePeak$denovoASM$PeakID,"log2FoldChange"],
   foxfSig[scrnaGenePeak$denovoASM$PeakID,"log2FoldChange"],
-  pch=1,col='blue'
+  pch=1,col='blue',cex=1.5
 )
 
 points(
   mespDnSig[scrnaGenePeak$denovoCardiac$PeakID,"log2FoldChange"],
   foxfSig[scrnaGenePeak$denovoCardiac$PeakID,"log2FoldChange"],
-  pch=1,col='red'
+  pch=1,col='red',cex=1.5
 )
 lines(c(0,0),c(-2,2))
 lines(c(-2.5,2.5),c(0,0))

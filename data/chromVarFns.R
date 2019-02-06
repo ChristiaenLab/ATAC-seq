@@ -49,7 +49,7 @@ getHomerMotifs <- function(homerdat){
   return(homer.motifs)
 }
 
-getCisbpMotifs <- function(cisbp,promoters=c(
+getCisbpMotifs <- function(cisbp="Ciona_intestinalis_2017_11_01_3_41_pm/",promoters=c(
   "BREd","BREu","DCEI-DCEIII","DPE","DRE","E-box","Inr_fly","Inr_human",
   "ohler","Pause_button",'TATA-box',"TCT","XCPE","MTE"
 )){

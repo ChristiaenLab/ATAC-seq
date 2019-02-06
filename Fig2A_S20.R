@@ -36,29 +36,27 @@ asm.z <- asm.z[,c(-6,-12:-15)]
 
 cardiac.z <- deviationScores(cardiacDev)
 colnames(cardiac.z) <- colData(cardiacDev)$Name
-cardiac.z <- cardiac.z[,c(-6,-12:-15)]
+cardiac.z <- cardiac.z[,c(-6,-8,-9,-12:-15)]
 
-asmAvg <- avgZ(asmDev)
-cardiacAvg <- avgZ(cardiacDev)
+asmAvg <- avgZ(asmDev[,c(-6,-8,-9,-12:-15)])
+cardiacAvg <- avgZ(cardiacDev[,c(-6,-8,-9,-12:-15)])
 
 sel <- (asmDiff$p_value_adjusted<.01|
   cardiacDiff$p_value_adjusted<.01)&
   (apply(abs(asmAvg)>1.5,1,any)|
      apply(abs(cardiacAvg)>1.5,1,any))&
-  !mcols(asmDev)$Family_Name%in%c(
-    "ERF","AP2EREBP","BBRBPC","C2C2dof","Stat","ZFHD","Myb","MYB",
-    "MYBrelated","ND","Trihelix","WRKY","POU,Homeobox",
-    "promoter","NA"
+  mcols(asmDev)$Family_Name%in%c(
+    "bHLH","bZIP","EBF","ETS","Forkhead","Homeobox","MAD","MADS","NR","Paired,Homeobox","T-box","Zf"
   )&
   !is.na(mcols(asmDev)$Family_Name)
 
 asmHmap <- Heatmap(
   asmAvg[sel,],
   cluster_columns = F,
-  split=mcols(asmDev)$Family_Name[sel],
+  split=unlist(mcols(asmDev)$Family_Name)[sel],
   col=colorRamp2(c(-3,0,3),c('blue','white','red')),
   row_names_gp = gpar(cex=.5),
-  row_title_rot = 0,
+  row_title_rot = 90,
   row_title_gp = gpar(cex=.8),
   column_names_gp = gpar(cex=.8),
   show_row_names = F,
@@ -67,10 +65,10 @@ asmHmap <- Heatmap(
 cardiacHmap <- Heatmap(
   cardiacAvg[sel,],
   cluster_columns = F,
-  split=mcols(cardiacDev)$Family_Name[sel],
+  split=unlist(mcols(cardiacDev)$Family_Name)[sel],
   col=colorRamp2(c(-3,0,3),c('blue','white','red')),
   row_names_gp = gpar(cex=.5),
-  row_title_rot = 0,
+  row_title_rot = 90,
   row_title_gp = gpar(cex=.8),
   column_names_gp = gpar(cex=.8),
   column_title = "De novo cardiac"
