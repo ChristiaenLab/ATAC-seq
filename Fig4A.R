@@ -24,21 +24,6 @@ names(cisbp.motifs) <- make.names(sapply(tags(cisbp.motifs),'[[',"DBID.1"),T)
 cisbp.matches <- matchMotifs(cisbp.motifs,ann$peaks,BSgenome.Cintestinalis.KH.KH2013,'subject','matches')
 cisbp.family <- sapply(tags(cisbp.motifs),'[[',"Family_Name")
 
-tmp <- stack(sapply(
-  scrna[c("denovoCardiac","denovoASM")],
-  function(x) lapply(
-    list(
-      primedPeaks=setdiff(
-        Reduce(union,peaksets[c("open6",'closed6','closed18')]),
-        peaksets$open18
-      ),
-      denovoPeaks=peaksets$open18
-    ),
-    function(y) mergeGenePeak2(con,x,y)
-  )
-))
-dir.tab(tmp[,-3],'primed_denovo_cardiac_asm',col.names=F,row.names=F)
-
 mekmut.dnfgfr.18 <- getAtacLib(con,c('condition_handr_MekMut_vs_control','condition_handr_dnFGFR_vs_control'))
 
 peaks <- unlist(lapply(
@@ -69,13 +54,6 @@ peaks <- mapply(
     ]
   )
 )
-peakFamilyHyper(
-  peaks,
-  'TVC_18FamilyCombn',
-  comb.family,
-  motifMatches(comb.matches),
-  p=.050,fdr=T,logOR = 1.00,maskOR=T
-)
 
 sapply(peaks,length)
 
@@ -100,4 +78,19 @@ peakHyper(
   cisbp.family[selex.hocomoco],
   p=.050,fdr=F,logOR = 1.70,maskOR=T,breaks = c(0,4)
 )
+
+tmp <- stack(sapply(
+  scrna[c("denovoCardiac","denovoASM")],
+  function(x) lapply(
+    list(
+      primedPeaks=setdiff(
+        Reduce(union,peaksets[c("open6",'closed6','closed18')]),
+        peaksets$open18
+      ),
+      denovoPeaks=peaksets$open18
+    ),
+    function(y) mergeGenePeak2(con,x,y)
+  )
+))
+dir.tab(tmp[,-3],'primed_denovo_cardiac_asm',col.names=F,row.names=F)
 

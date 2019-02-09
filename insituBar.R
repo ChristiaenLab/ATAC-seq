@@ -167,3 +167,73 @@ mapply(
   paste0(c('st24',"st25","st27"),'Bar')
 )
 
+insitu.stacked <- lapply(insitu.dat,function(x) {
+  wt <-  x[x$Var2=='wt','value.x']
+  x[
+     x$Var2=='reduced.expression','value.x'
+   ] <- x[
+      x$Var2=='reduced.expression','value.x'
+   ]+wt
+  reduced <- x[x$Var2=='reduced.expression','value.x']
+  x[
+     x$Var2=='reduced.expression','value.y'
+   ] <- x[
+      x$Var2=='reduced.expression','value.y'
+   ]+wt
+  x[
+    x$Var2=='reduced.expression','value'
+  ] <- x[
+    x$Var2=='reduced.expression','value'
+  ]+wt
+  x[
+    x$Var2=='No.expression','value.x'
+  ] <- x[
+    x$Var2=='No.expression','value.x'
+  ]+reduced
+  x[
+    x$Var2=='No.expression','value.y'
+  ] <- x[
+    x$Var2=='No.expression','value.y'
+  ]+reduced
+  x[
+    x$Var2=='No.expression','value'
+  ] <- x[
+    x$Var2=='No.expression','value'
+  ]+reduced
+  return(x)
+})
+
+mapply(
+  function(dat,file) {
+    # open connection to image file
+    dir.eps(
+      file,
+      width=3,
+      height=2
+    )
+    # define plot
+    res <- barchart.error(
+      value.x*100 ~ Var1,
+      dat,
+      dat[,'value']*100,
+      dat[,'value.y']*100
+    )
+    # write plot to connection
+    plot(res)
+    # close connection
+    dev.off()
+  },
+  insitu.dat,
+  # file names
+  paste0(c('st24',"st25","st27"),'Bar')
+)
+
+barplot(do.call(cbind,split(insitu.stacked[[1]]$value.x,insitu.stacked[[1]]$Var1)))
+arrows(
+  as.numeric(insitu.stacked[[1]]$Var1),
+  insitu.stacked[[1]]$value.y,
+  as.numeric(insitu.stacked[[1]]$Var1),
+  insitu.stacked[[1]]$value,
+  angle = 90, 
+  length = .1, code=3
+)

@@ -4,7 +4,7 @@ library(DBI)
 library(ComplexHeatmap)
 source("data/dirfns.R")
 source("data/sqlfns.R")
-source("data/cor.heatmap.R")
+source("data/corHeatmap.R")
 source("data/DESeqFns.R")
 
 con <- dbConnect(RSQLite::SQLite(),'data/atacCiona.db')
