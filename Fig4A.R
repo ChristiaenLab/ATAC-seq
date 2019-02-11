@@ -26,21 +26,14 @@ cisbp.family <- sapply(tags(cisbp.motifs),'[[',"Family_Name")
 
 mekmut.dnfgfr.18 <- getAtacLib(con,c('condition_handr_MekMut_vs_control','condition_handr_dnFGFR_vs_control'))
 
-peaks <- unlist(lapply(
-  scrna[c("denovoCardiac","denovoASM")],
-  function(x) lapply(
-    list(
-      primedPeaks=setdiff(peaksets$tvcAcc,peaksets$open18),
-      denovoPeaks=setdiff(
-        peaksets$open18,
-        peaksets$tvcAcc)
-    ),
-    function(y) unique(mergeGenePeak(con,x,y)$PeakID)
-  )
-),F)
 peaks <- mapply(
   intersect,
-  peaks,
+  list(
+      primedCardiacPeaks=setdiff(peaksets$tvcAcc,peaksets$open18),
+      denovoCardiacPeaks=setdiff(peaksets$open18,peaksets$tvcAcc),
+      primedAsmPeaks=setdiff(peaksets$tvcAcc,peaksets$open18),
+      denovoAsmPeaks=setdiff(peaksets$open18,peaksets$tvcAcc)
+  ),
   list(
     names(ann$peaks),
     row.names(mekmut.dnfgfr.18$condition_handr_MekMut_vs_control)[
@@ -57,6 +50,18 @@ peaks <- mapply(
 
 sapply(peaks,length)
 
+peak.gene <- mapply(
+  mergeGenePeak2,
+  peaks=peaks,
+  genes=scrna[c("denovoCardiac","denovoCardiac","denovoASM","denovoASM")],
+  MoreArgs = list(con=con),
+  SIMPLIFY = F
+)
+
+dynamics <- lapply(peak.gene,function(x) unique(x$PeakID))
+sapply(dynamics,length)
+
+
 selex.hocomoco <- which(
   sapply(tags(cisbp.motifs),'[[',"Motif_Type")%in%c("SELEX","HocoMoco")&
     !grepl("^M[Afvw][0-9]+",names(cisbp.motifs))|
@@ -64,7 +69,7 @@ selex.hocomoco <- which(
 )
 
 peakFamilyHyper(
-  peaks,
+  dynamics,
   'selex_hocomoco_TVC_18Family',
   cisbp.family[selex.hocomoco],
   motifMatches(cisbp.matches)[,selex.hocomoco],
@@ -72,25 +77,20 @@ peakFamilyHyper(
 )
 
 peakHyper(
-  peaks,
+  dynamics,
   'selex_hocomoco_TVC_18',
   motifMatches(cisbp.matches)[,selex.hocomoco],
   cisbp.family[selex.hocomoco],
   p=.050,fdr=F,logOR = 1.70,maskOR=T,breaks = c(0,4)
 )
 
-tmp <- stack(sapply(
-  scrna[c("denovoCardiac","denovoASM")],
-  function(x) lapply(
-    list(
-      primedPeaks=setdiff(
-        Reduce(union,peaksets[c("open6",'closed6','closed18')]),
-        peaksets$open18
-      ),
-      denovoPeaks=peaksets$open18
-    ),
-    function(y) mergeGenePeak2(con,x,y)
-  )
-))
-dir.tab(tmp[,-3],'primed_denovo_cardiac_asm',col.names=F,row.names=F)
+# Table S13
+tmp <- do.call(rbind,peak.gene)
+tmp$peakset <- sub('\\.[0-9]+','',row.names(tmp))
+tmp$geneset <- c(
+  rep('denovoCardiac',sum(sapply(peak.gene,nrow)[1:2])),
+  rep('denovoASM',sum(sapply(peak.gene,nrow)[3:4]))
+)
+
+dir.tab(tmp,'primed_denovo_cardiac_asm',row.names=F)
 
