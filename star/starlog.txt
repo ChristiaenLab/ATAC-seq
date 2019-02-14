@@ -1,0 +1,30 @@
+foxf1_ko_10hpf_rnaseq_june_6	foxf_ko_10hpf_rnaseq_may_31	lacz1_ko_10hpf_rnaseq_may_31	lacz2_ko_10hpf_rnaseq_june_6	ngn2_ko_10hpf_rnaseq_june_6	ngn2_ko_10hpf_rnaseq_may_31
+Started job on 	Jul 03 10:33:22	Jul 03 10:33:22	Jul 03 10:33:22	Jul 03 10:33:23	Jul 03 10:33:22	Jul 03 10:33:22
+Started mapping on 	Jul 03 10:33:39	Jul 03 10:33:39	Jul 03 10:33:39	Jul 03 10:33:39	Jul 03 10:33:39	Jul 03 10:33:39
+Finished on 	Jul 03 10:37:16	Jul 03 10:42:17	Jul 03 10:38:04	Jul 03 10:36:04	Jul 03 10:36:53	Jul 03 10:47:29
+Mapping speed, Million of reads per hour 	175.51	178.56	176.85	175.98	180.50	173.42
+Number of input reads 	10579600	25692955	13018093	7088189	9727163	39983350
+Average input read length 	150	150	150	150	150	150
+Uniquely mapped reads number 	9663601	23275969	11894338	6472894	8811396	36454741
+Uniquely mapped reads % 	91.34%	90.59%	91.37%	91.32%	90.59%	91.17%
+Average mapped length 	148.91	148.87	148.91	148.83	148.84	148.87
+Number of splices: Total 	4483363	11114549	5579324	3225934	4088689	16905559
+Number of splices: Annotated (sjdb) 	4323102	10711079	5380952	3107101	3941278	16299069
+Number of splices: GT/AG 	4453260	11039943	5542472	3204034	4060934	16793967
+Number of splices: GC/AG 	18946	46003	23486	13362	17248	70209
+Number of splices: AT/AC 	1308	3611	1816	938	1258	5199
+Number of splices: Non-canonical 	9849	24992	11550	7600	9249	36184
+Mismatch rate per base, % 	0.80%	0.83%	0.81%	0.83%	0.81%	0.81%
+Deletion rate per base 	0.02%	0.02%	0.02%	0.02%	0.02%	0.02%
+Deletion average length 	1.69	1.71	1.69	1.79	1.75	1.69
+Insertion rate per base 	0.02%	0.02%	0.02%	0.02%	0.02%	0.02%
+Insertion average length 	1.51	1.61	1.58	1.61	1.57	1.57
+Number of reads mapped to multiple loci 	255017	681606	317888	190330	264584	1006048
+% of reads mapped to multiple loci 	2.41%	2.65%	2.44%	2.69%	2.72%	2.52%
+Number of reads mapped to too many loci 	4920	14349	5791	4173	6487	19302
+% of reads mapped to too many loci 	0.05%	0.06%	0.04%	0.06%	0.07%	0.05%
+% of reads unmapped: too many mismatches 	0.00%	0.00%	0.00%	0.00%	0.00%	0.00%
+% of reads unmapped: too short 	6.19%	6.69%	6.14%	5.93%	6.62%	6.25%
+% of reads unmapped: other 	0.01%	0.01%	0.01%	0.01%	0.01%	0.01%
+Number of chimeric reads 	0	0	0	0	0	0
+% of chimeric reads 	0.00%	0.00%	0.00%	0.00%	0.00%	0.00%

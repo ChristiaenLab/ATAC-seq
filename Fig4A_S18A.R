@@ -68,6 +68,7 @@ selex.hocomoco <- which(
     names(cisbp.motifs)%in%c("EBF","K562_GATA2_UChicago")
 )
 
+# Fig. 4A
 peakFamilyHyper(
   dynamics,
   'selex_hocomoco_TVC_18Family',
@@ -76,6 +77,7 @@ peakFamilyHyper(
   p=.050,fdr=T,logOR = 0.00,maskOR=T
 )
 
+# Fig. S18A
 peakHyper(
   dynamics,
   'selex_hocomoco_TVC_18',

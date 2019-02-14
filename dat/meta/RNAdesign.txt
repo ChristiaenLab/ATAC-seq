@@ -1,0 +1,7 @@
+condition	date
+foxf1_ko_10hpf_rnaseq_june_6	FoxF	june6
+foxf_ko_10hpf_rnaseq_may_31	FoxF	may31
+lacz1_ko_10hpf_rnaseq_may_31	LacZ	may31
+lacz2_ko_10hpf_rnaseq_june_6	LacZ	june6
+ngn2_ko_10hpf_rnaseq_june_6	Ngn	june6
+ngn2_ko_10hpf_rnaseq_may_31	Ngn	may31

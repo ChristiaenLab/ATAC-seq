@@ -1,4 +1,5 @@
 # initialize the database used for all subsequent analysis
+# write Fig. S1D as GCfeat
 
 library(DBI)
 library(GenomicRanges)
@@ -48,6 +49,18 @@ genomefeat <- sapply(genomefeat,trim)
 peakGeneAnnotation <- annotatePeaks(peakome,kh2013$genebody,features = genomefeat)
 peakGeneAnnotation$promoterAnn <- promoterAnn
 
+# Fig. S1D
+peakGC <- letterFrequency(Views(BSgenome.Cintestinalis.KH.KH2013,peakGeneAnnotation$peaks),"GC")
+
+featGC <- apply(peakGeneAnnotation$features[,-1:-3],2,function(x) sum(peakGC[x])/sum(width(peakGeneAnnotation$peaks[x])))
+
+genomeFeatGC <- sapply(genomefeat,function(x) sum(
+  letterFrequency(Views(BSgenome.Cintestinalis.KH.KH2013,x),"GC")
+)/sum(width(x)))
+
+dir.eps('GCfeat')
+barplot(rbind(featGC,genomeFeatGC),las=2,beside = T)
+dev.off()
 
 dbWriteKey(con,'peakfeature',peakGeneAnnotation$features,primary = 'PeakID',row.names = "PeakID")
 
@@ -111,13 +124,6 @@ mapply(
 )
 
  # bulkRNAseq
-
-foxf <- lrtab('dat/rnaseq/foxf/',read.csv,'\\.csv',stringsAsFactors=F)
-# fold changes are reversed in these files
-foxf$FoxF10hpf_LacZ10hpf$log2FoldChange <- -foxf$FoxF10hpf_LacZ10hpf$log2FoldChange
-foxf$LacZ10hpf_Ngn10hpf$log2FoldChange <- -foxf$LacZ10hpf_Ngn10hpf$log2FoldChange
-
-dbWriteGenes(con,'foxf_rnaseq',melt.rename(foxf,'comparison'))
 
 handr <- lrtab('dat/rnaseq/handr/',read.csv,'\\.csv')
 dbWriteGenes(con,'handr_rnaseq',melt.rename(handr,'comparison'))
