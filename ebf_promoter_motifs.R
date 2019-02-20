@@ -1,0 +1,33 @@
+library(motifmatchr)
+library(TFBSTools)
+library(DBI)
+library(BSgenome.Cintestinalis.KH.KH2013)
+
+source('data/sqlfns.R')
+source('data/chromVarFns.R')
+source('data/dirfns.R')
+
+con <- dbConnect(RSQLite::SQLite(),'data/atacCiona.db')
+scrna <- getScRNA(con)
+peaksets <- getPeaksets(con)
+ann <- getAnnotation(con)
+
+cisbp.motifs <- getCisbpMotifs()
+names(cisbp.motifs) <- make.names(sapply(tags(cisbp.motifs),'[[',"DBID.1"),T)
+cisbp.family <- sapply(tags(cisbp.motifs),'[[',"Family_Name")
+
+peaks <- c("KhL24:31630-32784","KhL24:33162-33770","KhL24:32318-32848","KhL24:33162-33779")
+ranges <- GRanges(peaks)
+
+cisbp.matches <- matchMotifs(
+  cisbp.motifs[cisbp.family=="promoter"],
+  ranges,
+  BSgenome.Cintestinalis.KH.KH2013,'subject','positions'
+)
+
+nmotifs <- sapply(cisbp.matches,countOverlaps,query=GRanges(c("KhL24:31630-32784","KhL24:33162-33770")))
+row.names(nmotifs) <- c("KhL24:31630-32784","KhL24:33162-33770")
+
+nmotifs/width(GRanges(c("KhL24:31630-32784","KhL24:33162-33770")))*1000
+
+dir.tab(t(nmotifs),'ebf_promoter_motifs_per_kb')
