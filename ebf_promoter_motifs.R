@@ -22,6 +22,7 @@ cisbp.matches <- matchMotifs(
 nmotifs <- sapply(cisbp.matches,countOverlaps,query=ranges)
 row.names(nmotifs) <- peaks
 
-nmotifs/width(ranges)*1000
+dir.tab(t(nmotifs),'ebf_promoter_motifs')
+nmotifs <- nmotifs/width(ranges)*1000
 
 dir.tab(t(nmotifs),'ebf_promoter_motifs_per_kb')
