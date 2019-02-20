@@ -3,14 +3,8 @@ library(TFBSTools)
 library(DBI)
 library(BSgenome.Cintestinalis.KH.KH2013)
 
-source('data/sqlfns.R')
 source('data/chromVarFns.R')
 source('data/dirfns.R')
-
-con <- dbConnect(RSQLite::SQLite(),'data/atacCiona.db')
-scrna <- getScRNA(con)
-peaksets <- getPeaksets(con)
-ann <- getAnnotation(con)
 
 cisbp.motifs <- getCisbpMotifs()
 names(cisbp.motifs) <- make.names(sapply(tags(cisbp.motifs),'[[',"DBID.1"),T)
