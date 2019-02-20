@@ -25,9 +25,9 @@ cisbp.matches <- matchMotifs(
   BSgenome.Cintestinalis.KH.KH2013,'subject','positions'
 )
 
-nmotifs <- sapply(cisbp.matches,countOverlaps,query=GRanges(c("KhL24:31630-32784","KhL24:33162-33770")))
-row.names(nmotifs) <- c("KhL24:31630-32784","KhL24:33162-33770")
+nmotifs <- sapply(cisbp.matches,countOverlaps,query=ranges)
+row.names(nmotifs) <- peaks
 
-nmotifs/width(GRanges(c("KhL24:31630-32784","KhL24:33162-33770")))*1000
+nmotifs/width(ranges)*1000
 
 dir.tab(t(nmotifs),'ebf_promoter_motifs_per_kb')
