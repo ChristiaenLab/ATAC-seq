@@ -49,14 +49,14 @@ getHomerMotifs <- function(homerdat){
   return(homer.motifs)
 }
 
-getCisbpMotifs <- function(cisbp="Ciona_intestinalis_2017_11_01_3_41_pm/",promoters=c(
+getCisbpMotifs <- function(cisbp="CISBP/Ciona_intestinalis_2017_11_01_3_41_pm/",promoters=c(
   "BREd","BREu","DCEI-DCEIII","DPE","DRE","E-box","Inr_fly","Inr_human",
   "ohler","Pause_button",'TATA-box',"TCT","XCPE","MTE"
 )){
   require(TFBSTools)
   motifs <- lapply(
     list.files(
-      paste0('CISBP/',cisbp,'/pwms_all_motifs/'),
+      paste0(cisbp,'/pwms_all_motifs/'),
       full.names = T),
     function(x){
       mat <- t(as.matrix(read.delim(x)[,c("A","C","G","T")]))
