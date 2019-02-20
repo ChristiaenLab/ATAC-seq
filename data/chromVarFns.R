@@ -73,7 +73,7 @@ getCisbpMotifs <- function(cisbp="CISBP/Ciona_intestinalis_2017_11_01_3_41_pm/",
   motifid <- unlist(sapply(motifs,'[','ID'))
   
   motifdat <- read.delim(
-    paste0('CISBP/',cisbp,'/TF_Information_all_motifs_plus.txt'),
+    paste0(cisbp,'/TF_Information_all_motifs_plus.txt'),
     stringsAsFactors = F)
   addmotif <- motifid[!motifid%in%motifdat$Motif_ID]
   sapply(addmotif, function(x) {
