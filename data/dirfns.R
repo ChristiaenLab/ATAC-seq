@@ -1,3 +1,10 @@
+setRowNames <- function(x,nm){
+  if(is.data.frame(x)){ 
+    row.names(x) <- nm
+  }else rownames(x) <- nm
+  return(x)
+}
+
 paste1 <- function(x,sep='',collapse=NULL){
   x <- lapply(x,as.character)
   x$sep <- sep

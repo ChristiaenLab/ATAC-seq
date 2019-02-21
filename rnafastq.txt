@@ -10,4 +10,3 @@ n02_lacz1_ko_10hpf_rnaseq_may_31.fastq.gz
 n02_lacz2_ko_10hpf_rnaseq_june_6.fastq.gz
 n02_ngn2_ko_10hpf_rnaseq_june_6.fastq.gz
 n02_ngn2_ko_10hpf_rnaseq_may_31.fastq.gz
-rnafastq.txt

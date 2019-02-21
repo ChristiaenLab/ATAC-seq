@@ -5,6 +5,8 @@ library(BSgenome.Cintestinalis.KH.KH2013)
 
 source('data/chromVarFns.R')
 source('data/dirfns.R')
+source('data/plotMotifs.R')
+source('data/corHeatmap.R')
 
 cisbp.motifs <- getCisbpMotifs()
 names(cisbp.motifs) <- make.names(sapply(tags(cisbp.motifs),'[[',"DBID.1"),T)
@@ -14,8 +16,8 @@ peaks <- c("KhL24:31630-32784","KhL24:33162-33770","KhL24:32318-32848","KhL24:33
 ranges <- GRanges(peaks)
 
 cisbp.matches <- matchMotifs(
-  cisbp.motifs[cisbp.family=="promoter"],
-  ranges,
+  cisbp.motifs,
+  setNames(ranges,peaks),
   BSgenome.Cintestinalis.KH.KH2013,'subject','positions'
 )
 
@@ -26,3 +28,15 @@ dir.tab(t(nmotifs),'ebf_promoter_motifs')
 nmotifs <- nmotifs/width(ranges)*1000
 
 dir.tab(t(nmotifs),'ebf_promoter_motifs_per_kb')
+
+known.motifs <- getHomerMotifs('known.motifs')
+family <- sapply(tags(known.motifs),'[[',"Family_Name")
+
+matches <- matchMotifs(
+  known.motifs,
+  setNames(ranges,c('a','b','c','d')),
+  BSgenome.Cintestinalis.KH.KH2013,
+  'subject','matches'
+)
+
+plotPeakMatches(motifMatches(matches),'ebfmatches',family)

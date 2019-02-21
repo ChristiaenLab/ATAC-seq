@@ -96,3 +96,15 @@ tmp$geneset <- c(
 
 dir.tab(tmp,'primed_denovo_cardiac_asm',row.names=F)
 
+source('data/selex.R')
+motifs <- getSelex(con)
+selex.family <- sapply(tags(motifs),'[[',"TF.family")
+
+matches <- matchMotifs(motifs,ann$peaks,BSgenome.Cintestinalis.KH.KH2013,'subject','matches')
+peakHyper(
+  dynamics,
+  'selex',
+  motifMatches(matches),
+  selex.family,
+  p=0.100,fdr=F,logOR = 1,maskOR=T
+)
