@@ -41,6 +41,7 @@ peakHyper <- function(
   maskOR=T,subset.cols=F,
   breaks=c(0,4),
   show_row_dend=F,
+  path='.',
   # bg=Reduce(union,peaksets[c("timeDep","mespDep","handrDep")]),
   # width=6,height=8,
   ...
@@ -56,7 +57,7 @@ peakHyper <- function(
     matches,
     peaksel
   )
-  dir.tab(hyper,file)
+  dir.tab(hyper,file,path)
   
   hyper[!is.finite(hyper)] <- 0
   odds <- hyper[,paste0("log2OddsRatio",names(peaks))]
@@ -86,7 +87,7 @@ peakHyper <- function(
   # )
   height <- nrow(fdr)/6+2
   width <- ncol(fdr)*.25+5
-  dir.eps(file,width=width,height=height)
+  dir.eps(file,path,width=width,height=height)
   draw(col.hmap(
     -log2(fdr),
     # col=fdrcol,
@@ -103,7 +104,7 @@ peakHyper <- function(
   #   seq(0,max(odds),length.out = 5),
   #   c("white","lightcyan",'steelblue1',"dodgerblue","navy")
   # )
-  dir.eps(paste0(file,'Odds'),width=width,height=height)
+  dir.eps(paste0(file,'Odds'),path,width=width,height=height)
   draw(abs.hmap(
     odds,
     # col=oddscol,
@@ -120,7 +121,7 @@ peakHyper <- function(
 
 peakFamilyHyper <- function(
   peaks,file,familyID,matches,p=.05,
-  show_row_dend=T,
+  show_row_dend=T,path=".",
   ...
 ){
   familyMatch <- sapply(
@@ -132,6 +133,7 @@ peakFamilyHyper <- function(
   peakHyper(
     peaks,file,familyMatch,
     ...,
-    p=p,show_row_dend = show_row_dend
+    p=p,show_row_dend = show_row_dend,
+    path=path
   )
 }

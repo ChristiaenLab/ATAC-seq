@@ -40,3 +40,20 @@ matches <- matchMotifs(
 )
 
 plotPeakMatches(motifMatches(matches),'ebfmatches',family)
+
+library(ggseqlogo)
+ggseqlogo(Matrix(motifs$FOXF1.2))
+
+
+cisbp.matches <- cisbp.matches[sapply(cisbp.matches,length)>0]
+
+tmp <- lapply(cisbp.matches,Views,subject=BSgenome.Cintestinalis.KH.KH2013)
+
+ranges <- sapply(tmp,granges)
+ranges <- do.call(GRangesList,ranges)
+ranges <- unlist(ranges)
+
+mcols(ranges)$seq <- unlist(sapply(tmp,as.character))
+
+library(rtracklayer)
+dir.export(ranges,'cisbpMatch',path='..',format='gff3')
