@@ -9,6 +9,7 @@ source('data/chromVarFns.R')
 source('data/motifHyperFns.R')
 source('data/dirfns.R')
 source('data/corHeatmap.R')
+source('data/selex.R')
 
 con <- dbConnect(RSQLite::SQLite(),'data/atacCiona.db')
 scrna <- getScRNA(con)
@@ -96,7 +97,6 @@ tmp$geneset <- c(
 
 dir.tab(tmp,'primed_denovo_cardiac_asm',row.names=F)
 
-source('data/selex.R')
 motifs <- getSelex(con)
 selex.family <- sapply(tags(motifs),'[[',"TF.family")
 
@@ -107,4 +107,90 @@ peakHyper(
   motifMatches(matches),
   selex.family,
   p=0.100,fdr=F,logOR = 1,maskOR=T
+)
+
+up15downFgfr <- readLines('up15downFgfr.txt')
+up15downMek <- readLines('up15downMek.txt')
+
+peaks <- mapply(
+  intersect,
+  list(
+      primedCardiacPeaks=setdiff(peaksets$tvcAcc,peaksets$open15),
+      denovoCardiacPeaks=setdiff(peaksets$open15,peaksets$tvcAcc),
+      primedAsmPeaks=setdiff(peaksets$tvcAcc,peaksets$open15),
+      denovoAsmPeaks=setdiff(peaksets$open15,peaksets$tvcAcc)
+  ),
+  list(
+    names(ann$peaks),
+    row.names(mekmut.dnfgfr.18$condition_handr_MekMut_vs_control)[
+      mekmut.dnfgfr.18$condition_handr_MekMut_vs_control$log2FoldChange< -.00|
+        mekmut.dnfgfr.18$condition_handr_dnFGFR_vs_control$log2FoldChange> .00
+    ],
+    names(ann$peaks),
+    row.names(mekmut.dnfgfr.18$condition_handr_dnFGFR_vs_control)[
+      mekmut.dnfgfr.18$condition_handr_dnFGFR_vs_control$log2FoldChange< -.00|
+        mekmut.dnfgfr.18$condition_handr_MekMut_vs_control$log2FoldChange>.00
+    ]
+  )
+)
+
+peak.gene <- mapply(
+  mergeGenePeak2,
+  peaks=peaks,
+  genes=list(up15downMek,up15downMek,up15downFgfr,up15downFgfr),
+  MoreArgs = list(con=con),
+  SIMPLIFY = F
+)
+
+dynamics <- lapply(peak.gene,function(x) unique(x$PeakID))
+sapply(dynamics,length)
+
+peakHyper(
+  dynamics,
+  'selex12_15',
+  motifMatches(matches),
+  selex.family,
+  p=0.100,fdr=F,logOR = 1,maskOR=T
+)
+
+peakHyper(
+  dynamics,
+  'selex_hocomoco_12_15',
+  motifMatches(cisbp.matches)[,selex.hocomoco],
+  cisbp.family[selex.hocomoco],
+  p=.100,fdr=F,logOR = 1.00,maskOR=T,breaks = c(0,4)
+)
+
+tmp <- do.call(rbind,peak.gene)
+tmp$peakset <- sub('\\.[0-9]+','',row.names(tmp))
+tmp$geneset <- c(
+  rep('up15downMek',sum(sapply(peak.gene,nrow)[1:2])),
+  rep('up15downFgfr',sum(sapply(peak.gene,nrow)[3:4]))
+)
+
+dir.tab(tmp,'primed_denovo_cardiac_asm_15',row.names=F)
+
+peakfeat <- apply(ann$features,2,function(x) row.names(ann$features)[x])
+feat15 <- unlist(lapply(
+  list(heart15=up15downMek,asm15=up15downFgfr),
+  function(x) lapply(
+    peakfeat,
+    function(y) mergeGenePeak(con,x,y)$PeakID
+  )
+),F)
+
+peakHyper(
+  feat15,
+  'selex_hocomoco_12_15feat',
+  motifMatches(cisbp.matches)[,selex.hocomoco],
+  cisbp.family[selex.hocomoco],
+  p=.100,fdr=F,logOR = 1.00,maskOR=T,breaks = c(0,4)
+)
+
+peakHyper(
+  feat15,
+  'selex_12_15feat',
+  motifMatches(matches),
+  selex.family,
+  p=.100,fdr=F,logOR = 1.00,maskOR=T,breaks = c(0,4)
 )

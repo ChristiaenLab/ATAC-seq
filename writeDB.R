@@ -125,8 +125,8 @@ mapply(
 
  # bulkRNAseq
 
-handr <- lrtab('dat/rnaseq/handr/',read.csv,'\\.csv')
-dbWriteGenes(con,'handr_rnaseq',melt.rename(handr,'comparison'))
+# handr <- lrtab('dat/rnaseq/handr/',read.csv,'\\.csv')
+# dbWriteGenes(con,'handr_rnaseq',melt.rename(handr,'comparison'))
 
 # ATAC-seq metadata
 

@@ -12,8 +12,9 @@ paste1 <- function(x,sep='',collapse=NULL){
   return(do.call(paste,x))
 } 
 # simplifies Reduce syntax
-sreduce <- function(x,fn,...,init, right = FALSE, accumulate = FALSE) Reduce(
+sreduce <- function(fn,x,init=NULL, right = FALSE, accumulate = FALSE,...) Reduce(
   function(y,z) fn(y,z,...),x,init,right,accumulate)
+
 lfold <- function(x,fn,...) {
   res <- x[[1]]
   lapply(2:length(x), function(y) res <<- fn(res,x[[y]],...))
