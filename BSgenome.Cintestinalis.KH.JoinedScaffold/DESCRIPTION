@@ -1,0 +1,18 @@
+Package: BSgenome.Cintestinalis.KH.JoinedScaffold
+Title: Ciona intestinalis Joined Scaffolds
+Description: A BSgenome package for the Ciona intestinalis genome
+Version: 0.1
+Author: Yutaka Satou, Katsuhiko Mineta, Michio Ogasawara, Yasunori Sasakura, Eiichi Shoguchi, Keisuke Ueno, Lixy Yamada, Jun Matsumoto, Jessica Wasserscheid, Ken Dewar, Graham B Wiley, Simone L Macmil, Bruce A Roe, Robert W Zeller, Kenneth EM Hastings, Patrick Lemaire, Erika Lindquist, Toshinori Endo2, Kohji Hotta and Kazuo Inaba
+Maintainer: Keira Wiechecki <kaw504@nyu.edu>
+Depends: BSgenome (>= 1.50.0)
+Imports: BSgenome
+Suggests: 
+License: GPL-2
+organism: Ciona intestinalis
+common_name: Vase tunicate
+provider: KH
+provider_version: JoinedScaffold
+release_date: 2008
+release_name: KH
+source_url: http://ghost.zool.kyoto-u.ac.jp/datas/JoinedScaffold.zip
+biocViews: AnnotationData, Genetics, BSgenome, Ciona_intestinalis
