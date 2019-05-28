@@ -7,12 +7,15 @@ rscript.s is a wrapper script for submitting R scripts as batch jobs.
 
 Tools required: bamutils, bedtools, Bowtie2, deeptools, gcc>=6.3, gsl>=2.3, htseq, kent, macs2, picard, R>=3.4 
 
-R packages required:  BSgenomes.Cintestinalis.KH.KH2013, circlize, chromVAR, ComplexHeatmap, DBI, DESeq2, edgeR, fgsea, GenomicFeatures, GenomicRanges, ggplot2, lattice, latticeExtra, motifmatchr, optparse, reshape2, RSQLite, rtracklayer, TFBSTools, UpSetR, VennDiagram
+R packages required:  BSgenomes.Cintestinalis.KH.JoinedScaffold, circlize, chromVAR, ComplexHeatmap, DBI, DESeq2, edgeR, fgsea, GenomicFeatures, GenomicRanges, ggplot2, lattice, latticeExtra, motifmatchr, optparse, reshape2, RSQLite, rtracklayer, TFBSTools, UpSetR, VennDiagram
 
 ----------------------------
 Genome data
 
 Usage:
+
+# install BSgenomes.Cintestinalis.KH.JoinedScaffold
+R CMD INSTALL BSgenomes.Cintestinalis.KH.JoinedScaffold
 
 # align ATACseq reads
 sbatch -a1-52 bowtie.s

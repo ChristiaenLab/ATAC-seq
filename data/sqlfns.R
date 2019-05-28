@@ -156,7 +156,7 @@ getAnnotation <- function(con){
     # gene.names  mapping of GeneID to gene name
   require(DBI)
   require(GenomicRanges)
-  require(BSgenome.Cintestinalis.KH.KH2013)
+  require(BSgenome.Cintestinalis.KH.JoinedScaffold)
   dat <- dbReadTable(con,'geneToPeak')
   geneToPeak <- split(dat$PeakID,dat$GeneID)
   peakToGene <- split(dat$GeneID,dat$PeakID)
@@ -183,8 +183,8 @@ getAnnotation <- function(con){
         which(seqnames(genewindow)==chr&end(genewindow)>chrlen)
       ] <<- chrlen
     },
-    seqnames(BSgenome.Cintestinalis.KH.KH2013),
-    seqlengths(BSgenome.Cintestinalis.KH.KH2013)
+    seqnames(BSgenome.Cintestinalis.KH.JoinedScaffold),
+    seqlengths(BSgenome.Cintestinalis.KH.JoinedScaffold)
   )
   return(list(
     geneToPeak=geneToPeak,

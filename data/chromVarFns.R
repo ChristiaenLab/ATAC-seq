@@ -49,6 +49,18 @@ getHomerMotifs <- function(homerdat){
   return(homer.motifs)
 }
 
+motifFromPwmFile <- function(x,strand='*',...){
+  mat <- t(as.matrix(read.delim(x)[,c("A","C","G","T")]))
+  if(dim(mat)[2]>0){
+    sapply(1:ncol(mat),function(y){
+      mat[which.max(mat[,y]),y] <<- mat[which.max(mat[,y]),y]-(sum(mat[,y])-1)
+    })
+    # mat <- mat/apply(mat,2,sum)
+    ID <- sub('.txt','',sub('.*\\/','',x))
+    return(PWMatrix(ID=ID,profileMatrix = mat,strand = strand,...))
+  }
+}
+
 getCisbpMotifs <- function(cisbp="CISBP/Ciona_intestinalis_2017_11_01_3_41_pm/",promoters=c(
   "BREd","BREu","DCEI-DCEIII","DPE","DRE","E-box","Inr_fly","Inr_human",
   "ohler","Pause_button",'TATA-box',"TCT","XCPE","MTE"
@@ -114,14 +126,14 @@ getChromVAR <- function(
   # wrapper function for chromVAR::computeDeviations
   # 
   require(chromVAR)
-  require(BSgenome.Cintestinalis.KH.KH2013)
+  require(BSgenome.Cintestinalis.KH.JoinedScaffold)
   require(motifmatchr)
   require(TFBSTools)
   expDesign$condtime <- apply(expDesign[,-1],1,paste,collapse='')
   ncondtime <- table(expDesign$condtime)
   design <- expDesign[expDesign$condtime%in%names(ncondtime)[ncondtime>1],]
   
-  seqlengths(peaks) <- seqlengths(BSgenome.Cintestinalis.KH.KH2013)[seqlevels(peaks)]
+  seqlengths(peaks) <- seqlengths(BSgenome.Cintestinalis.KH.JoinedScaffold)[seqlevels(peaks)]
   
   if(resizeWidth){
     peaks <- resize(peaks,width = resizeWidth,fix = 'center')
@@ -135,10 +147,10 @@ getChromVAR <- function(
     paste0(bamDir,'/',row.names(design)),
     peaks, paired =  TRUE,  format = "bam", colData = DataFrame(design))
   counts <- addGCBias(
-    counts, genome = BSgenome.Cintestinalis.KH.KH2013)
+    counts, genome = BSgenome.Cintestinalis.KH.JoinedScaffold)
   
   matches <- matchMotifs(
-    motifs, counts, genome = BSgenome.Cintestinalis.KH.KH2013
+    motifs, counts, genome = BSgenome.Cintestinalis.KH.JoinedScaffold
   )
   
   # computing deviations

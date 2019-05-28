@@ -1,7 +1,7 @@
 library(motifmatchr)
 library(TFBSTools)
 library(DBI)
-library(BSgenome.Cintestinalis.KH.KH2013)
+library(BSgenome.Cintestinalis.KH.JoinedScaffold)
 
 source('data/chromVarFns.R')
 source('data/dirfns.R')
@@ -18,7 +18,7 @@ ranges <- GRanges(peaks)
 cisbp.matches <- matchMotifs(
   cisbp.motifs,
   setNames(ranges,peaks),
-  BSgenome.Cintestinalis.KH.KH2013,'subject','positions'
+  BSgenome.Cintestinalis.KH.JoinedScaffold,'subject','positions'
 )
 
 nmotifs <- sapply(cisbp.matches,countOverlaps,query=ranges)
@@ -35,7 +35,7 @@ family <- sapply(tags(known.motifs),'[[',"Family_Name")
 matches <- matchMotifs(
   known.motifs,
   setNames(ranges,c('a','b','c','d')),
-  BSgenome.Cintestinalis.KH.KH2013,
+  BSgenome.Cintestinalis.KH.JoinedScaffold,
   'subject','matches'
 )
 
@@ -47,7 +47,7 @@ ggseqlogo(Matrix(motifs$FOXF1.2))
 
 cisbp.matches <- cisbp.matches[sapply(cisbp.matches,length)>0]
 
-tmp <- lapply(cisbp.matches,Views,subject=BSgenome.Cintestinalis.KH.KH2013)
+tmp <- lapply(cisbp.matches,Views,subject=BSgenome.Cintestinalis.KH.JoinedScaffold)
 
 ranges <- sapply(tmp,granges)
 ranges <- do.call(GRangesList,ranges)

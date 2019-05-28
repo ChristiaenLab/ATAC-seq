@@ -142,9 +142,9 @@ barplotHyper <- function(matches,test,p=T,...){
   }
 }
 
-getGC <- function(peaks,genome=BSgenome.Cintestinalis.KH.KH2013,letters=c("C","G")){
+getGC <- function(peaks,genome=BSgenome.Cintestinalis.KH.JoinedScaffold,letters=c("C","G")){
   require(GenomicFeatures)
-  require(BSgenome.Cintestinalis.KH.KH2013)
+  require(BSgenome.Cintestinalis.KH.JoinedScaffold)
   if(class(peaks)=="GRanges") peaks <- split(peaks,seqnames(peaks))
   if(class(peaks)=="GRangesList"){
     strand(peaks)[strand(peaks)=="*"] <- "+"
@@ -174,7 +174,7 @@ letterFrequency2 <- function(x, letters, OR="|",
 }
 
 getGC2 <- function(...){
-  require(BSgenome.Cintestinalis.KH.KH2013)
-  windowViews <- Views(BSgenome.Cintestinalis.KH.KH2013, windowRanges)
+  require(BSgenome.Cintestinalis.KH.JoinedScaffold)
+  windowViews <- Views(BSgenome.Cintestinalis.KH.JoinedScaffold, windowRanges)
   gcFrequency <- letterFrequency2(windowViews, letters="GC", as.prob=TRUE)
 }

@@ -1,7 +1,7 @@
 library(motifmatchr)
 library(TFBSTools)
 library(DBI)
-library(BSgenome.Cintestinalis.KH.KH2013)
+library(BSgenome.Cintestinalis.KH.JoinedScaffold)
 
 source('data/plotMotifs.R')
 source('data/sqlfns.R')
@@ -17,12 +17,12 @@ peaksets <- getPeaksets(con)
 ann <- getAnnotation(con)
 
 known.motifs <- getHomerMotifs('known.motifs')
-matches <- matchMotifs(known.motifs,ann$peaks,BSgenome.Cintestinalis.KH.KH2013,'subject','matches')
+matches <- matchMotifs(known.motifs,ann$peaks,BSgenome.Cintestinalis.KH.JoinedScaffold,'subject','matches')
 tf.family <- sapply(tags(known.motifs),'[[',"Family_Name")
 
 cisbp.motifs <- getCisbpMotifs()
 names(cisbp.motifs) <- make.names(sapply(tags(cisbp.motifs),'[[',"DBID.1"),T)
-cisbp.matches <- matchMotifs(cisbp.motifs,ann$peaks,BSgenome.Cintestinalis.KH.KH2013,'subject','matches')
+cisbp.matches <- matchMotifs(cisbp.motifs,ann$peaks,BSgenome.Cintestinalis.KH.JoinedScaffold,'subject','matches')
 cisbp.family <- sapply(tags(cisbp.motifs),'[[',"Family_Name")
 
 mekmut.dnfgfr.18 <- getAtacLib(con,c('condition_handr_MekMut_vs_control','condition_handr_dnFGFR_vs_control'))
@@ -100,7 +100,7 @@ dir.tab(tmp,'primed_denovo_cardiac_asm',row.names=F)
 motifs <- getSelex(con)
 selex.family <- sapply(tags(motifs),'[[',"TF.family")
 
-matches <- matchMotifs(motifs,ann$peaks,BSgenome.Cintestinalis.KH.KH2013,'subject','matches')
+matches <- matchMotifs(motifs,ann$peaks,BSgenome.Cintestinalis.KH.JoinedScaffold,'subject','matches')
 peakHyper(
   dynamics,
   'selex',
@@ -193,4 +193,21 @@ peakHyper(
   motifMatches(matches),
   selex.family,
   p=.100,fdr=F,logOR = 1.00,maskOR=T,breaks = c(0,4)
+)
+
+peakHyper(
+  dynamics,
+  'homer',
+  motifMatches(matches),
+  tf.family,
+  p=.050,fdr=F,logOR = 1.70,maskOR=T#,breaks = c(0,4)
+)
+
+dir.tab(matchHyper(motifMatches(matches),sapply(peaksets,function(x)row.names(matches)%in%x)),'knownMotifHyper')
+peakHyper(
+  dynamics,
+  'selex_dynamics',
+  motifMatches(selex.matches8mer),
+  selex.family,
+  p=.100,fdr=F,logOR = 1.00,maskOR=T
 )

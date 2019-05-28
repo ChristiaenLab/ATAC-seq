@@ -1,7 +1,7 @@
 # usage: Rscript chromVarDeviations.R --peaks <bam file> --conditiontime "<levels in atac/DEseq/expDesign.csv$conditiontime>" --out <out file name> --cores <number of parallel threads>
 library(optparse)
 library(chromVAR)
-library(BSgenome.Cintestinalis.KH.KH2013)
+library(BSgenome.Cintestinalis.KH.JoinedScaffold)
 library(TFBSTools)
 library(BiocParallel)
 library(motifmatchr)
@@ -52,7 +52,7 @@ motifs <- getHomerMotifs("known.motifs")
 
 
 peaks <- import(opts$peaks)#getPeaks(opts$peaks,sort_peaks = T)
-seqlengths(peaks) <- seqlengths(BSgenome.Cintestinalis.KH.KH2013)[seqlevels(peaks)]
+seqlengths(peaks) <- seqlengths(BSgenome.Cintestinalis.KH.JoinedScaffold)[seqlevels(peaks)]
 
 peaks <- resize(peaks,width = 200,fix = 'center')
 peaks <- trim(peaks)
@@ -65,11 +65,11 @@ counts <- getCounts(
   peaks, paired =  TRUE,  format = "bam", colData = DataFrame(design)
 )
 counts <- addGCBias(
-  counts, genome = BSgenome.Cintestinalis.KH.KH2013
+  counts, genome = BSgenome.Cintestinalis.KH.JoinedScaffold
 )
 
 matches <- matchMotifs(
-  motifs, counts, genome = BSgenome.Cintestinalis.KH.KH2013
+  motifs, counts, genome = BSgenome.Cintestinalis.KH.JoinedScaffold
 )
 
 # computing deviations

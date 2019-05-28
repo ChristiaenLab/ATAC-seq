@@ -1,7 +1,7 @@
 # Figs. 2A, S20
 
 library(chromVAR)
-library(BSgenome.Cintestinalis.KH.KH2013)
+library(BSgenome.Cintestinalis.KH.JoinedScaffold)
 library(TFBSTools)
 library(BiocParallel)
 library(motifmatchr)

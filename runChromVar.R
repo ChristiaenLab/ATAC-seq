@@ -8,6 +8,7 @@ register(MulticoreParam(20))
 source('data/chromVarFns.R')
 source('data/dirfns.R')
 source("data/sqlfns.R")
+source("data/getSelex.R")
 
 con <- dbConnect(RSQLite::SQLite(),'data/atacCiona.db')
 
@@ -23,7 +24,8 @@ expDesign <- expDesign[
   expDesign$tissue=='B7.5'&expDesign$omit==0,
 ]
 
-motifs <- getHomerMotifs("known.motifs")
+# motifs <- getHomerMotifs("known.motifs")
+motifs <- getSelex()
 
 mespPeaks <- ann$peaks[peaksets$mespDep]
 mespDesign <- expDesign[

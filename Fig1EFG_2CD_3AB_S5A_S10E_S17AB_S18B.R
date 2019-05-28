@@ -18,7 +18,7 @@ gene.names <- peakGeneAnnotation$gene.names
 
 rna <- getRnaDat(con)[c(3:5,2)]
 rna$gfp.lacz <- rna$FoxF10hpf_LacZ10hpf
-rna$gfp.lacz$log2FoldChange <- 0
+rna$gfp.lacz$log2FoldChange <- NA
 rna$gfp.lacz$padj <- 1
 atac <- getAtacLib(con,c(
   "condition_handr_dnFGFR_vs_control","condition_handr_MekMut_vs_control",
@@ -73,7 +73,7 @@ mapk10quant <- lapply(
 dbDiamondplot(
   con,rna,atac,
   mapk10quant,
-  list(tvcAcc,atmAcc,heartAcc,asmAcc),
+  peaksets[c("tvcAcc","atmAcc","heartAcc","asmAcc")],
   c('forestgreen','gray28','red','blue'),
   list(prime.denovo),cols,'mapk10'
 )

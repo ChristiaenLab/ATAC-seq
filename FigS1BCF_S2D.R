@@ -5,7 +5,7 @@ library(rtracklayer)
 library(optparse)
 library(DBI)
 library(lattice)
-library(BSgenome.Cintestinalis.KH.KH2013)
+library(BSgenome.Cintestinalis.KH.JoinedScaffold)
 source('data/dirfns.R')
 source("data/GRfns.R")
 source("data/DESeqFns.R")
@@ -41,7 +41,7 @@ DAgeneLenBinom <- geneSizeBinom(
 
 featcount <- apply(peakGeneAnnotation$features[-1:-3],2,sum)
 
-genomeSize <- sum(seqlengths(BSgenome.Cintestinalis.KH.KH2013))
+genomeSize <- sum(seqlengths(BSgenome.Cintestinalis.KH.JoinedScaffold))
 genomeCoverage <- sum(width(peakome))/genomeSize
 
 pfeat <- sapply(

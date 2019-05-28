@@ -14,11 +14,13 @@ expDesign <- data.frame(
   condtime=sub('[0-9]+$','',names(dat)),
   row.names = names(dat)
 )
+# expDesign$experiment <- ifelse(grepl('^handr',expDesign$condtime),'handr','foxf')
+expDesign$condtime <- sub('.*lacz','lacz',expDesign$condtime)
 
 dds = DESeqDataSetFromMatrix(
   countData=dat, 
   colData = expDesign, 
-  design = ~conditiontime
+  design = ~condtime
 )
 dds = DESeq(dds)
 
@@ -27,10 +29,11 @@ comp <- list(
   c('handrdnfgfr15hpf','lacz15hpf'),c('foxfcamras15hpf','lacz15hpf'),
   c('handrdnfgfr18hpf','lacz18hpf'),c('foxfcamras18hpf','lacz18hpf'),
   c('handrdnfgfr20hpf','lacz20hpf'),c('foxfcamras20hpf','lacz20hpf'),
-  c('lacz12hpf','lacz15hpf'),c('handrdnfgfr18hpf','foxfcamras18hpf')
+  c('lacz12hpf','lacz15hpf'),c('lacz12hpf','lacz20hpf'),
+  c('handrdnfgfr18hpf','foxfcamras18hpf')
 )
 res <- lapply(comp,function(x) results(
-  dds,c('conditiontime',x[1],x[2]),format = "DataFrame",alpha = .05
+  dds,c('condtime',x[1],x[2]),format = "DataFrame",alpha = .05
 ))
 names(res) <- sapply(comp,function(x) paste(c("condtime",x),collapse = '_'))
 

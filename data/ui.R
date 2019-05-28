@@ -24,6 +24,14 @@ shinyUI(pageWithSidebar(
       h4("diamondplot"),
       textAreaInput('genes',"Gene sets",height='200px'),
       textAreaInput('peaks',"Peak sets",height='200px'),
+      selectInput('rna','RNA-seq data',names(rna)),
+      selectInput('atac','ATAC-seq data',names(atac)),
+      selectInput("geneset","Gene set", c(names(scrna),names(bulkGS))),
+      checkboxGroupInput('peakset',"Peak sets",names(peaksets)),
+      checkboxInput(
+        'intersect',
+        'Plot only the intersect of the gene set and peak sets?'
+      ),
       textInput('diamond.out',"File name",'diamond.eps'),
       actionButton('writePlot','Write diamondplot')
     )
@@ -31,7 +39,7 @@ shinyUI(pageWithSidebar(
   
   do.call(
     mainPanel,
-    append(
+    # append(
       list(
         h4("SQL"),
         tabsetPanel(
@@ -39,29 +47,28 @@ shinyUI(pageWithSidebar(
           tabPanel("tables",dataTableOutput("tables")),
           tabPanel("Gene-to-peak",dataTableOutput("genes")),
           tabPanel("Peak-to-gene",dataTableOutput("peaks"))
-        )
-      ),
+        ),
     # show ATACseq and RNAseq as two tabsets with headers
-      do.call(
-        append,
-        mapply(
-          function(main,x) list(
-            # tabset header
-            h4(main),
-            # show each DESeq result as tab in tabset
-            do.call(
-              tabsetPanel,
-              lapply(
-                rna.atac.res[,x],
-                function(y) tabPanel(y,dataTableOutput(y))
-              )
+        h4("RNA-seq result"),
+        do.call(
+          tabsetPanel,
+          lapply(
+            rna.atac.res$rnaseqRes,
+            function(x) tabPanel(
+              x,dataTableOutput(x)
             )
-          ),
-          main=c("ATACseq Result",'RNAseq Result'),
-          x=names(rna.atac.res),
-          SIMPLIFY = F,USE.NAMES = F
+          )
+        ),
+        h4("ATAC-seq result"),
+        do.call(
+          tabsetPanel,
+          lapply(
+            rna.atac.res$atacRes,
+            function(x) tabPanel(
+              x,dataTableOutput(x)
+            )
+          )
         )
       )
-    )
   )
 ))

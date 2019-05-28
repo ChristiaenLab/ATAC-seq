@@ -1,13 +1,7 @@
 # library(shiny)
 # library(RSQLite)
 
-# global variables here are (NOT!) visible in ui.R
-# con <- dbConnect(SQLite(),'atacCiona.db')
-# rna.atac.res <- dbReadTable(con,'rnaseq_atac_lib')
-# 
-# addInput <- function(i,...) renderUI({
-#   
-# })
+# global variables here are NOT visible in ui.R
 
 shinyServer(function(input, output) {
   query <- reactive({
@@ -31,10 +25,18 @@ shinyServer(function(input, output) {
   # tmp <- mapply(dbReadTable,rna.atac.res$rnaseqRes,MoreArgs = list(conn=con,row.names="GeneID"))
   # print(output)
   sapply(
-    unlist(rna.atac.res),
-    function(x) output[[x]] <<- renderDataTable({
-      dbReadTable(con,x)
+    # unlist(rna.atac.res),
+    names(rna),
+    function(x) output[[x]] <<- DT::renderDataTable({
+      datatable(rna[[x]],rownames = T)
+      # dbReadTable(con,x)
     })#,options = list(aLengthMenu = c(5, 30, 50), iDisplayLength = 5))
+  )
+  sapply(
+    names(atac),
+    function(x) output[[x]] <<- renderDataTable({
+      datatable(atac[[x]],rownames=T)
+    })
   )
   output$SQL <- renderDataTable({
     input$update
@@ -54,6 +56,17 @@ shinyServer(function(input, output) {
     data.frame(
       tables=dbListTables(con),
       fields=sapply(dbListTables(con),function(x) paste(dbListFields(con,x),collapse = ', '))
+    )
+  })
+  output$plot <- renderPlot({
+    dbDiamondplot(
+      con,
+      rna[input$rna],
+      atac[input$atac],
+      append(bulkGS,scrna)[input$geneset],
+      peaksets[input$peakset],
+      peakcols[input$peakset],
+      
     )
   })
   # observe({

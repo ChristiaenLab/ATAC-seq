@@ -54,7 +54,7 @@ library(motifmatchr)
 library(GenomicRanges)
 library(rtracklayer)
 library(TFBSTools)
-library(BSgenome.Cintestinalis.KH.KH2013)
+library(BSgenome.Cintestinalis.KH.JoinedScaffold)
 library(ComplexHeatmap)
 library(circlize)
 library(DBI)
@@ -88,7 +88,7 @@ tscsel <- intersect(which(promoterTSSsel),to(tscPeaks))
 promotersel <- apply(peakfeature[,c('promoter500','promoter1k')],1,any)
 
 
-peakmatches <- matchMotifs(motifs,peaks,genome = BSgenome.Cintestinalis.KH.KH2013,bg='genome')
+peakmatches <- matchMotifs(motifs,peaks,genome = BSgenome.Cintestinalis.KH.JoinedScaffold,bg='genome')
 featsel <- cbind(
   promoter=promotersel,peakfeature,
   # intergenic=!apply(peakGeneAnnotation$features,1,any),
@@ -203,7 +203,7 @@ ebfpromoter <- unique(peakGeneAnnotation$peaks[findOverlaps(import('ebfpromoter.
 ebfmatch <- matchMotifs(
   motifs[familyID%in%c('Ets','T-box','ohler','EBF',"E-box")],
   unique(ebfpromoter),bg='subject',
-  genome = BSgenome.Cintestinalis.KH.KH2013
+  genome = BSgenome.Cintestinalis.KH.JoinedScaffold
 )
 ebfmotifs <- apply(
   motifMatches(ebfmatch), 1, function(x) cbind(
@@ -215,7 +215,7 @@ ebfmotifs <- mapply(cbind,peak=c('putative_promoter','10hpf-B','10hpf-A','pinky'
 ebfmotifs <- do.call(rbind,ebfmotifs)
 dir.tab(ebfmotifs,'EBFpromoterMotifs')
 
-peakmatches <- matchMotifs(motifs,peakGeneAnnotation$peaks,genome = BSgenome.Cintestinalis.KH.KH2013,bg='subject')
+peakmatches <- matchMotifs(motifs,peakGeneAnnotation$peaks,genome = BSgenome.Cintestinalis.KH.JoinedScaffold,bg='subject')
 
 
 tscOverlap <- subsetByOverlaps(tsc,peakGeneAnnotation$peaks)
@@ -246,7 +246,7 @@ deHyper <- mapply(
 
 
 # tscOverlapMatch <- matchMotifs(
-#   motifs, tscOverlap, genome=BSgenome.Cintestinalis.KH.KH2013, bg='genome'
+#   motifs, tscOverlap, genome=BSgenome.Cintestinalis.KH.JoinedScaffold, bg='genome'
 # )
 # tscOverlapCt <- apply(motifMatches(tscOverlapMatch),2,sum)
 # tscOverlapHyper <- mapply(

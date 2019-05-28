@@ -96,9 +96,10 @@ dbDiamondplot <- function(
   con,rna,atac,gene.sets,
   peak.sets,peak.cols,
   more.genes,more.gene.cols,
-  file,gene.peak.intersect=T,p=c(0.05,0.05),cex.axis=1.2,...
+  file=NULL,path='.',gene.peak.intersect=T,p=c(0.05,0.05),cex.axis=1.2,...
 ) {
   require(DBI)
+  require(grid)
   require(gridExtra)
   
   gene.names <- dbReadTable(con,'gene_name',row.names="GeneID")
@@ -183,7 +184,7 @@ dbDiamondplot <- function(
     z~x*y|geneset,
     data = data.frame(
       expand.grid(
-        x=factor(row.names(ma),row.names(ma)),
+        x=1:nrow(ma),#factor(row.names(ma),row.names(ma)),
         y=names(ma)
       ),
       z=unlist(ma),
@@ -201,7 +202,7 @@ dbDiamondplot <- function(
     between=list(x=2),                       #between creates more space
     # between the panels - you may need to adjust this value
     par.settings=list(layout.widths=list(right.padding=6)), #this creates
-    ylab=NULL,
+    ylab=NULL,xlab=NULL,
     prepanel=function(x, y, subscripts,...) {
       xsub <- unique(x[subscripts])
       return(list( 
@@ -209,7 +210,8 @@ dbDiamondplot <- function(
       ))
     },
     col.regions = colorRampPalette(c('blue','lightgray','red')),
-    strip = FALSE,at=at
+    strip = FALSE,at=at,
+    colorkey = list(space='top')
   )
   lplots <- resizePanels(lplots,w=ngenes/nrow(dat))
   
@@ -230,11 +232,11 @@ dbDiamondplot <- function(
       # x$col <- col[x[,2]]
       # x[row.names(dat$rna)[!row.names(dat$rna)%in%row.names(x)],] <- NA
       # return(x)
-    },simplify = T
-  ),
-  row.names=dat$GeneID,
-  stringsAsFactors=F
-)
+      },simplify = T
+    ),
+    row.names=dat$GeneID,
+    stringsAsFactors=F
+  )
   
   names.y <- 16
   dat$names.y <- names.y+1.5
@@ -255,6 +257,7 @@ dbDiamondplot <- function(
     between=list(x=2),                       #between creates more space
     # between the panels - you may need to adjust this value
     par.settings=list(layout.widths=list(right.padding=6)), #this creates
+    yscale.component=function(...,right=F) yscale.components.default(...,right = F),
     panel = function(x, y,subscripts,...) {
       panel.xyplot(1:length(x),y,subscripts,...)
       panel.text(1:length(x),y,dat[subscripts,'gene'],srt=90,adj=c(1,.5))
@@ -305,26 +308,48 @@ dbDiamondplot <- function(
   #   )
   # )
   # plots <- resizePanels(plots,h=c(.90,rep(1,length(plots)-1)),w=ngenes/nrow(dat))
-  plots <- append(
-    append(plots,list(gene.names)), 
-    list(
-      lplots
-    )
-  )
-  dir.eps(file,path,width=width,height=height)
-  # do.call(grid.arrange,append(
+  
+  # grid.newpage()
+  # vp <- viewport(width = width/max(width,height),height = height/max(width,height))
+  if(is.character(file)){
+    dir.eps(file,path,width=height,height=width)
+  }
+  vp <- viewport(angle = 270,width = unit(width,'inches'),height = unit(height,'inches'))
+  pushViewport(vp)
+  
+  i <- length(plots)+2.25
+  print(lplots,position=c(0,(i-1.25)/i,1,1),more=T,newpage=F)
+  mapply(function(x,y) print(x,position=c(0,(i-y-1.25)/i,1,(i-y-0.25)/i),more=T),plots,1:length(plots))
+  print(gene.names,position=c(0,0,1,1/i))
+  
+  if(is.character(file)) dev.off()
+  # popViewport()
+  
+  # plots <- append(
+  #   append(plots,list(gene.names)), 
+  #   list(
+  #     lplots
+  #   )
+  # )
+  # # do.call(grid.arrange,append(
+  # #   plots,
+  # #   list(layout_matrix=matrix(length(plots):1,length(plots)))
+  # # ))
+  # plots <- do.call(c,append(
   #   plots,
-  #   list(layout_matrix=matrix(length(plots):1,length(plots)))
+  #   list(
+  #     merge.legends=F,
+  #     layout=c(length(gene.sets),length(plots))
+  #   )
   # ))
-  plots <- do.call(c,append(
-    plots,
-    list(
-      merge.legends=F,
-      layout=c(length(gene.sets),length(plots))
-    )
-  ))
-  plot(plots)
-  dev.off()
+  # if(is.character(file)){
+  #   dir.eps(file,path,width=width,height=height)
+  #   plot(plots)
+  #   dev.off()
+  # }
+  # 
+  # pushViewport(viewport(unit(width,'inches'),unit(height,'inches')))
+  # plot(plots)
   # rna <- lapply(rna,function(x) dbReadTable(con,x))
   # atac <- lapply(atac,function(x) dbReadTable(con,x))
   # gene.sets <- lapply(gene.sets,function(x) dbGetQuery(con,x))
@@ -381,11 +406,12 @@ diamondPlotPanel <- function(
   {
     ans <- yscale.components.default(lim,...)
     # ans$right <- ans$left
-    ans$right <- atac.tics$left
-    foo <- ans$left$labels$at
+    tmp <- yscale.components.default(lim*rna.atac.scale,...)#atac.tics$left
+    ans$right <- tmp$left
+    foo <- ans$right$labels$at
     # ans$right$labels$labels <- as.character(foo)
-    ans$right$labels$at <- rna.atac.scale*foo
-    ans$right$ticks$at <- rna.atac.scale*foo
+    ans$right$labels$at <- foo/rna.atac.scale
+    ans$right$ticks$at <- foo/rna.atac.scale
     # scale factor difference between axes, adjust as necessary
     return(ans)
   }

@@ -5,7 +5,7 @@ library(DBI)
 library(GenomicRanges)
 library(GenomicFeatures)
 library(rtracklayer)
-library(BSgenome.Cintestinalis.KH.KH2013)
+library(BSgenome.Cintestinalis.KH.JoinedScaffold)
 
 source('data/sqlfns.R')
 source('data/dirfns.R')
@@ -41,7 +41,7 @@ promoterAnn <- findOverlaps(peakome,kh2013$promoterGene)
 
 genomefeat <- append(
   kh2013$features,
-  list(TSC=tsc,genome=GRanges(seqinfo(BSgenome.Cintestinalis.KH.KH2013)))
+  list(TSC=tsc,genome=GRanges(seqinfo(BSgenome.Cintestinalis.KH.JoinedScaffold)))
 )
 genomefeat <- do.call(GRangesList,lapply(genomefeat,function(x) reduce(unlist(x))))
 genomefeat <- sapply(genomefeat,trim)
@@ -50,12 +50,12 @@ peakGeneAnnotation <- annotatePeaks(peakome,kh2013$genebody,features = genomefea
 peakGeneAnnotation$promoterAnn <- promoterAnn
 
 # Fig. S1D
-peakGC <- letterFrequency(Views(BSgenome.Cintestinalis.KH.KH2013,peakGeneAnnotation$peaks),"GC")
+peakGC <- letterFrequency(Views(BSgenome.Cintestinalis.KH.JoinedScaffold,peakGeneAnnotation$peaks),"GC")
 
 featGC <- apply(peakGeneAnnotation$features[,-1:-3],2,function(x) sum(peakGC[x])/sum(width(peakGeneAnnotation$peaks[x])))
 
 genomeFeatGC <- sapply(genomefeat,function(x) sum(
-  letterFrequency(Views(BSgenome.Cintestinalis.KH.KH2013,x),"GC")
+  letterFrequency(Views(BSgenome.Cintestinalis.KH.JoinedScaffold,x),"GC")
 )/sum(width(x)))
 
 dir.eps('GCfeat')

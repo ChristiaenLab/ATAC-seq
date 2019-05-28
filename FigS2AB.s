@@ -18,9 +18,11 @@ cd $RUNDIR
 bedtools intersect -f 1 -a foxf.cisbp.bed -b 2018-10-03/tvcAcc.bed > foxf.tvc.bed
 
 computeMatrix reference-point -S \
+ /scratch/kaw504/atacCiona/atac/bam/3xbfp_5hpf_26_july.bw \
  /scratch/kaw504/atacCiona/atac/bam/mesp_lacz_10hpf_21_april.bw \
  /scratch/kaw504/atacCiona/atac/bam/mesp_mekmut_10hpf_14_june.bw \
  /scratch/kaw504/atacCiona/atac/bam/foxf_22_2.bw \
+ /scratch/kaw504/atacCiona/atac/bam/mesp_dnfgfr_10hpf_26_april.bw \
  -R foxf.tvc.bed --skipZeros -p 20 -o foxf.tvc.mat.gz --referencePoint center -b 500 -a 500
 
 plotProfile -m foxf.tvc.mat.gz --outFileName foxf.tvc.eps --perGroup --legendLocation lower-right --refPointLabel "FoxF binding site" --samplesLabel control "mesp MekMut" "FoxF KO"
