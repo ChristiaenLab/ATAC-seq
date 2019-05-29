@@ -1,4 +1,5 @@
 library(DESeq2)
+library(DBI)
 source("data/dirfns.R")
 source("data/sqlfns.R")
 con <- dbConnect(RSQLite::SQLite(),'data/atacCiona.db')
