@@ -18,12 +18,12 @@ expDesign <- data.frame(
 # expDesign$experiment <- ifelse(grepl('^handr',expDesign$condtime),'handr','foxf')
 expDesign$condtime <- sub('.*lacz','lacz',expDesign$condtime)
 
-dds = DESeqDataSetFromMatrix(
+dds <- DESeqDataSetFromMatrix(
   countData=dat, 
   colData = expDesign, 
   design = ~condtime
 )
-dds = DESeq(dds)
+dds <- DESeq(dds)
 
 comp <- list(
   c('handrdnfgfr12hpf','lacz12hpf'),c('foxfcamras12hpf','lacz12hpf'),
@@ -36,6 +36,7 @@ comp <- list(
 res <- lapply(comp,function(x) results(
   dds,c('condtime',x[1],x[2]),format = "DataFrame",alpha = .05
 ))
+res <- lapply(res,function(x) cbind(GeneID=row.names(x),x))
 names(res) <- sapply(comp,function(x) paste(c("condtime",x),collapse = '_'))
 
 dbWriteGenes(con,'handr_rnaseq',melt.rename(res,'comparison'))
