@@ -15,7 +15,8 @@ Genome data
 Usage:
 
 # install BSgenomes.Cintestinalis.KH.JoinedScaffold
-R CMD INSTALL BSgenomes.Cintestinalis.KH.JoinedScaffold
+cd BSgenome.Cintestinalis.KH.JoinedScaffold
+./forgeGenome.sh
 
 # align ATACseq reads
 sbatch -a1-52 bowtie.s
