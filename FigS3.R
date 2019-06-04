@@ -47,26 +47,12 @@ DEtfSize <- sum(width(reduce(peakGeneAnnotation$genewindow[DEtfs])))
 DEcsmSize <- sum(width(reduce(peakGeneAnnotation$genewindow[DEcsm])))
 # expressed <- Reduce(union,append(sapply(scrna,row.names),bulkGS))
 
-# Fig. S3D
 peak.size <- data.frame(
   peaklen=width(peakGeneAnnotation$peaks),
   type='all',row.names = names(peakGeneAnnotation$peaks),stringsAsFactors=F
 )
 peak.size[unique(unlist(peakGeneAnnotation$geneToPeak[tfs])),'type'] <- "TF"
 peak.size[unique(unlist(peakGeneAnnotation$geneToPeak[csm])),'type'] <- "CSM"
-
-dir.eps('log2geneSize.npeak')
-plot(gene.size.npeak[,c('log2bp','npeak')],pch=19,col='lightgray',cex=.8)
-points(gene.size.npeak[tfs,c('log2bp','npeak')],pch=19,col='red',cex=.8)
-points(gene.size.npeak[csm,c('log2bp','npeak')],pch=19,col='blue',cex=.8)
-dev.off()
-
-# Fig. S3E
-dir.eps('DElog2geneSize.npeak')
-plot(gene.size.npeak[,c('log2bp','npeak')],pch=19,col='lightgray',cex=.8)
-points(gene.size.npeak[DEtfs,c('log2bp','npeak')],pch=19,col='red',cex=.8)
-points(gene.size.npeak[DEcsm,c('log2bp','npeak')],pch=19,col='blue',cex=.8)
-dev.off()
 
 gene.size.npeak <- data.frame(
   bp = width(peakGeneAnnotation$genes[names(peakGeneAnnotation$geneToPeak)]),
@@ -80,9 +66,23 @@ gene.size.npeak[tfs,'type'] <- "TF"
 gene.size.npeak[csm,'type'] <- "CSM"
 gene.size.npeak$peakPerKb <- gene.size.npeak$npeak/gene.size.npeak$bp*1000
 
+# Fig. S3D
+dir.eps('log2geneSize.npeak')
+plot(gene.size.npeak[,c('log2bp','npeak')],pch=19,col='lightgray',cex=.8)
+points(gene.size.npeak[tfs,c('log2bp','npeak')],pch=19,col='red',cex=.8)
+points(gene.size.npeak[csm,c('log2bp','npeak')],pch=19,col='blue',cex=.8)
+dev.off()
+
+# Fig. S3E
+dir.eps('DElog2geneSize.npeak')
+plot(gene.size.npeak[,c('log2bp','npeak')],pch=19,col='lightgray',cex=.8)
+points(gene.size.npeak[DEtfs,c('log2bp','npeak')],pch=19,col='red',cex=.8)
+points(gene.size.npeak[DEcsm,c('log2bp','npeak')],pch=19,col='blue',cex=.8)
+dev.off()
+
 # Fig S3F
 dir.eps('peakPerKb')
-densityplot(~peakPerKb,gene.size.npeak,groups=type,auto.key = T,xlim = c(-5,20),pch=NA)
+densityplot(~peakPerKb,gene.size.npeak,groups=type,auto.key = T,xlim = c(0,20),pch=NA)
 dev.off()
 
 tf.csmBinom <- mapply(

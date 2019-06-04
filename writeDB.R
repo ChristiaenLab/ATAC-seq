@@ -189,7 +189,7 @@ binom.feat <- mapply(
 )
 
 peakCoverage <- sapply(genomefeat,function(x) reduce(
-  pintersect(findOverlapPairs(peakome,reduce(unlist(x)))),
+  pintersect(findOverlapPairs(peakome,x)),
   ignore.strand=T
 ))
 
@@ -199,7 +199,7 @@ featbypeakome <- mapply(function(x,y) sum(width(x))/sum(width(y)),x=peakCoverage
 
 de.bulk.scrna <- Reduce(union,append(scrna,bulkGS))
 de.bulk.scrna.peak <- Reduce(union,peakGeneAnnotation$geneToPeak[de.bulk.scrna])
-de.count <- apply(peakGeneAnnotation$features[de.bulk.scrna.peak,-1:-3],2,sum)
+de.count <- apply(peakGeneAnnotation$features[de.bulk.scrna.peak,],2,sum)
 de.binom.feat <- mapply(
   binom.test,
   de.count,
@@ -208,7 +208,7 @@ de.binom.feat <- mapply(
   alternative='two.sided',conf.level=.99,SIMPLIFY = F
 )
 
-tsc.count <- apply(peakGeneAnnotation$features[peakGeneAnnotation$features$TSC,-1:-3],2,sum)
+tsc.count <- apply(peakGeneAnnotation$features[peakGeneAnnotation$features$TSC,],2,sum)
 tsc.binom.feat <- mapply(
   binom.test,
   tsc.count,
