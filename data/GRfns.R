@@ -16,7 +16,7 @@ getFeatures <- function(
   elementMetadata(gff)$GeneName <- gene.names[elementMetadata(gff)$GeneID,]
   txdb <- makeTxDbFromGRanges(gff)
   
-  introns <- reduce(unlist(intronsByTranscript(txdb)))
+  introns <- intronsByTranscript(txdb)
   
   fputr <- gff[elementMetadata(gff)$type=='five_prime_UTR']
   fputr <- split(fputr,elementMetadata(fputr)$GeneID)
@@ -59,12 +59,12 @@ getFeatures <- function(
     names(promoterflank)
   )
   promoters <- promoters[length(promoters):1]
-  intergenic <- gaps(reduce(union(
+  intergenic <- GRangesList(gaps(reduce(union(
     unlist(Reduce(
       union,
       append(list(tts,tss),promoters)
     )),
-    genebody),ignore.strand=T))
+    genebody),ignore.strand=T)))
   
   return(list(
     genebody=genebody,
@@ -113,7 +113,7 @@ annotatePeaks <- function(peaks,genes,window=10000,features=NULL){
   if(!is.null(features)){
     res$features <- sapply(
       features,
-      function(x) overlapsAny(peaks,unlist(x))
+      overlapsAny,query=peaks
     )
     res$features <- cbind(
       data.frame(

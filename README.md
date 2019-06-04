@@ -14,6 +14,10 @@ Genome data
 
 Usage:
 
+#get KH2013 transcript model from GHOST
+wget -U firefox http://ghost.zool.kyoto-u.ac.jp/datas/KH.KHGene.2013.gff3.zip
+unzip KH.KHGene.2013.gff3.zip
+
 # install BSgenomes.Cintestinalis.KH.JoinedScaffold
 cd BSgenome.Cintestinalis.KH.JoinedScaffold
 ./forgeGenome.sh
