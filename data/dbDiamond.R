@@ -393,6 +393,8 @@ diamondPlotPanel <- function(
   # ylim <- c(floor(ylim[1]),ceiling(ylim[2]))
   rna.ylim <- range(dat$log2FoldChange,na.rm = T)
   atac.ylim <- range(unlist(atac),na.rm = T)
+  if(!is.finite(rna.ylim[1])) rna.ylim[1] <- atac.ylim[1]
+  if(!is.finite(rna.ylim[2])) rna.ylim[2] <- atac.ylim[2]
   
   rna.atac.scale <- (atac.ylim[2]-atac.ylim[1])/(rna.ylim[2]-rna.ylim[1])
   atac <- lapply(atac,'/',rna.atac.scale)

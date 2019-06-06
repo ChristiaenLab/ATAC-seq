@@ -16,7 +16,10 @@ peaksets <- getPeaksets(con)
 peakGeneAnnotation <- getAnnotation(con)
 gene.names <- peakGeneAnnotation$gene.names
 
-rna <- getRnaDat(con)[c(3:5,2)]
+rna <- getRnaDat(con)[c(
+  "condtime_handrdnfgfr18hpf_lacz18hpf","condtime_foxfcamras18hpf_lacz18hpf",
+  "MA_dnFGFR_LacZ_10hpf","FoxF10hpf_LacZ10hpf"
+)]
 rna$gfp.lacz <- rna$FoxF10hpf_LacZ10hpf
 rna$gfp.lacz$log2FoldChange <- NA
 rna$gfp.lacz$padj <- 1
@@ -81,17 +84,17 @@ dbDiamondplot(
 # Fig. 2D
 dbDiamondplot(
   con,rna,atac,
-  sapply(
+  # sapply(
     bulkGS[c(
       "FoxFactivated","FoxFinhibited"
     )],
-    function(x) mergeGenePeak(
-      con,x,peaksets$closedFoxf
-    )$GeneID
-  ),
+  #   function(x) mergeGenePeak(
+  #     con,x,peaksets$closedFoxf
+  #   )$GeneID
+  # ),
   list(peaksets$tvcAcc,intersect(peaksets$tvcAcc,peaksets$closed6)),
   c('forestgreen','brown'),
-  list(prime.denovo),cols,'foxf',T
+  list(prime.denovo),cols,'foxf',gene.peak.intersect = F
 )
 
 
