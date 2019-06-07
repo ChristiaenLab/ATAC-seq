@@ -14,36 +14,63 @@ Genome data
 
 Usage:
 
-#get KH2013 transcript model from GHOST
+get KH2013 transcript model from GHOST
+```bash
 wget -U firefox http://ghost.zool.kyoto-u.ac.jp/datas/KH.KHGene.2013.gff3.zip
 unzip KH.KHGene.2013.gff3.zip
+```
 
-# install BSgenomes.Cintestinalis.KH.JoinedScaffold
+install BSgenomes.Cintestinalis.KH.JoinedScaffold
+```bash
 cd BSgenome.Cintestinalis.KH.JoinedScaffold
 ./forgeGenome.sh
-
-# align ATACseq reads
+```
+align ATACseq reads
+```bash
 sbatch -a1-52 bowtie.s
-# perform QC, generate bigWig files for IGV plots
+```
+perform QC, generate bigWig files for IGV plots
+```bash
 sbatch -a1-52 seqstats.s
-# call peaks
+```
+call peaks
+```bash
 sbatch -a1-52 macs2.s
-# merge peaks into accessome
+```
+merge peaks into accessome
+```bash
 sbatch peakome.s
-# get read counts for peaks in accessome
+```
+get read counts for peaks in accessome
+```bash
 sbatch -a1-52 counts.s
-# create STAR index
+```
+create STAR index
+```bash
 sbatch staridx.s
-# align RNAseq reads and get counts
+```
+align RNAseq reads and get counts
+```bash
 sbatch -a1-6 star.s
-# annotate peaks and initialize database
+```
+annotate peaks and initialize database
+```bash
 ./rscript.s writeDB.R
-# calculate differential expression & add to database
+```
+calculate differential expression & add to database
+```bash
 ./rscript.s rnaseqFoxf.R
 ./rscript.s rnaseqMAPK.R
-# calculate differential accessibility & add to database
+```
+calculate differential accessibility & add to database
+```bash
 ./rscript.s atacDESeq.R
-# perform GSEA on peak accessibility
+```
+perform GSEA on peak accessibility
+```bash
 ./rscript.s runFgsea.R
-# motif analysis of DA peaks
+```
+motif analysis of DA peaks
+```bash
 ./rscript runChromVar.R
+```

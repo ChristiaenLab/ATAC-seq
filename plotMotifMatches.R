@@ -42,10 +42,10 @@ plotPeakMatches(
     sel
   ],
   # file name
-  'ebfmotifFamily',
+  'ebfmotifFamilySelex',
   # split heatmap by families
   # this should also be subset by sel, otherwise groups will be wrong
-  homer.family[sel],
+  selex.family[sel],
   # don't reorder columns
   cluster_columns=F
 )
@@ -80,11 +80,17 @@ plotPeakMatches(
   cluster_columns=F
 )
 
-nkx.motifs <- matchMotifs(known.motifs,GRanges('KhC8',IRanges(4058672,4060061)),Cintestinalis,out='positions')
+nkx.motifs <- matchMotifs(known.motifs,GRanges('KhC8',IRanges(4058582,4060915)),Cintestinalis,out='positions')
 nkx.motifs <- unlist(nkx.motifs)
 nkx.motifs$seq <- as.character(Views(Cintestinalis,nkx.motifs))
 nkx.motifs$family <- homer.family[names(nkx.motifs)]
 export(nkx.motifs,'nkxMotifs.gff3')
+
+nkx.motifs <- matchMotifs(selex.pwm8mer,GRanges('KhC8',IRanges(4058582,4060915)),Cintestinalis,out='positions')
+nkx.motifs <- unlist(nkx.motifs)
+nkx.motifs$seq <- as.character(Views(Cintestinalis,nkx.motifs))
+nkx.motifs$family <- selex.family[names(nkx.motifs)]
+export(nkx.motifs,'nkxMotifsSelex.gff3')
 
 hand.motifs <- matchMotifs(known.motifs,GRanges('KhC14',IRanges(1826145,1827438)),Cintestinalis,out='positions')
 hand.motifs <- unlist(hand.motifs)
@@ -97,3 +103,11 @@ smurf.motifs <- unlist(smurf.motifs)
 smurf.motifs$seq <- as.character(Views(Cintestinalis,smurf.motifs))
 smurf.motifs$family <- homer.family[names(smurf.motifs)]
 export(smurf.motifs,'smurfMotifs.gff3')
+
+distanceToNearest(GRanges(
+  c("KhC1","KhC6","KhC4","KhC4","KhC3","KhC2","KhC5"),
+  IRanges(
+    c(3167894,1856686,1906285,1902488,106453,6992204,4070723),
+    c(3167913,1856710,1906304,1902509,106472,6992223,4070742)
+  )
+),ann$peaks)
