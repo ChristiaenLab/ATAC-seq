@@ -58,19 +58,31 @@ splitPeakHmap <- function(
 genePeakHmap <- function(peak.gene,mat,file,sets=NULL,...){
   peak.gene <- peak.gene[sapply(peak.gene,length)>0]
   hm <- splitPeakHmap(peak.gene,mat,sets,...)
-  ann <- rowAnnotation(text=row_anno_text(
-    sub('(.{,12}).*','\\1',sub(
-      "KH2013:","",gene.names[
-        do.call(c,sapply(peak.gene,'[',,'GeneID')),"UniqueNAME"
-        ]
-    ))
-  ),width=unit(3.5,'cm'))
+  GeneName <- rowAnnotation(
+    text=row_anno_text(
+      sub('(.{,12}).*','\\1',sub(
+        "KH2013:","",gene.names[
+          do.call(c,sapply(peak.gene,'[',,'GeneID')),"UniqueNAME"
+          ]
+      ))
+    ),
+    width=unit(3.5,'cm'),
+    show_annotation_name=T
+  )
+  
+  PeakID <- rowAnnotation(
+    text=row_anno_text(
+      do.call(c,sapply(peak.gene,'[',,'PeakID'))
+    ),
+    width=unit(3.5,'cm'),
+    show_annotation_name=T
+  )
   
   dir.eps(file,height=sum(sapply(
     peak.gene,
     function(x) length(intersect(row.names(mat),x[,"PeakID"]))
   ))/6+2)
-  draw(hm+ann)
+  draw(hm+PeakID+GeneName)
   dev.off()
 }
 

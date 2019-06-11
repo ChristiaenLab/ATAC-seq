@@ -76,8 +76,8 @@ mapk10quant <- lapply(
 dbDiamondplot(
   con,rna,atac,
   mapk10quant,
-  peaksets[c("tvcAcc","atmAcc","heartAcc","asmAcc")],
-  c('forestgreen','gray28','red','blue'),
+  peaksets[c("tvcAcc","atmAcc")],
+  c('forestgreen','gray28'),
   list(prime.denovo),cols,'mapk10'
 )
 
@@ -105,7 +105,7 @@ dbDiamondplot(
     row.names(sig.sub(rna$condtime_foxfcamras18hpf_handrlacz18hpf)),
     row.names(sig.sub(rna$condtime_handrdnfgfr18hpf_handrlacz18hpf))
   )),
-  list(heartAcc,asmAcc),c('red','blue'),list(prime.denovo),cols,'mapk18denovo',F
+  peaksets[c("heartAcc","asmAcc")],c('red','blue'),list(prime.denovo),cols,'mapk18denovo',F
 )
 
 # Fig. S17B
@@ -123,7 +123,7 @@ dbDiamondplot(
       ])[1:50]
     ],intersect(prime.denovo$STVC,bulkGS$MAPK18activated))
   ),
-  list(heartAcc,asmAcc),
+  peaksets[c("heartAcc","asmAcc")],
   c('red','blue'),
   list(prime.denovo),cols,'mapk18top50',F
 )
@@ -132,8 +132,8 @@ dbDiamondplot(
 mapply(
   scatterRnaAtac,
   rna=rna[c(
-    'condtime_foxfcamras18hpf_handrlacz18hpf',
-    'condtime_handrdnfgfr18hpf_handrlacz18hpf',
+    'condtime_foxfcamras18hpf_lacz18hpf',
+    'condtime_handrdnfgfr18hpf_lacz18hpf',
     'FoxF10hpf_LacZ10hpf',
     'MA_dnFGFR_LacZ_10hpf'
   )],

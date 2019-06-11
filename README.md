@@ -3,7 +3,7 @@ This pipeline is designed for processing of paired-end ATAC-seq libraries.
 The pipeline can be run on compute clusters with job submission engines or stand alone machines. Beginning from raw FASTQ files, the pipeline calls peaks and generates signal tracks. An accessome is created from all samples, which is used to compute read counts to calculate differential accessibility. The pipeline integrates ATAC-seq and RNA-seq data by annotating peaks to nearby genomic elements, and merging differentially expressed genes with differentially accessible peaks. It further characterizes differentially accessible elements by performing Gene Set Enrichment Analysis and motif enrichment.
 
 The shell scripts (*.s) are intended for submission using slurm, and may require modification before they can be run with other job submission managers.
-rscript.s is a wrapper script for submitting R scripts as batch jobs.
+rscript.s is a wrapper script for submitting R scripts as batch jobs. All R scripts (*.R) can instead be run interactively with Rscript.
 
 Tools required: bamutils, bedtools, Bowtie2, deeptools, gcc>=6.3, gsl>=2.3, htseq, kent, macs2, picard, R>=3.4 
 
