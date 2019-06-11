@@ -449,7 +449,7 @@ diamondPlotPanel <- function(
       # print(subscripts)
       fn(
         x,y,groups,subscripts,...,atac=atac,
-        sig=dat$sig,cex=2,
+        sig=dat$sig,cex=1.5,
         peak.sets=peak.sets,peak.cols=peak.cols
       )
     }
@@ -459,7 +459,7 @@ diamondPlotPanel <- function(
   return(list(plots))
 }
   
-filtpts <- function(x,y,sel,...,cex=.8){
+filtpts <- function(x,y,sel,...,cex=.75){
   y <- y[sel,]
   x <- x[sel]
   # x <- x[sel]
@@ -470,70 +470,70 @@ filtpts <- function(x,y,sel,...,cex=.8){
 }
 
 
-panel.rna <- function(
-  x,y,groups,subscripts,atac,
-  cex.x=1,
-  sig=T,cex=.8,
-  peak.sets=NULL,peak.cols=c('red','blue'),...
-){
-  y[y=0] <- NA
-  atac <- atac[subscripts]
-  sig <- sig[subscripts]
-  xval <- 1:length(x)
-  panel.dotplot(xval,y,...,col=1,cex=cex.x,pch=NA,col.line = NA)
-  panel.points(xval[!sig]-.10,y[!sig],pch=1,cex=cex.x,col=1)
-  # if(!is.null(sig)){
-    # sig <- sig[as.character(x)]
-    panel.points(xval[sig]-.10,y[sig],pch=19,cex=cex.x,col=1)
-  # }
-  # draw lines at cutoffs
-  # if(!is.null(peak.sets)) panel.abline(h=lfc,col=1)
-  # draw line at 0
-  panel.abline(h=0,col=1)
-}
-
-panel.atac <- function(
-  x,y,groups,subscripts,atac,
-  cex.x=1,
-  sig=T,cex=.8,
-  peak.sets=NULL,peak.cols=c('red','blue'),...
-){
-  y[y=0] <- NA
-  atac <- atac[subscripts]
-  sig <- sig[subscripts]
-  xval <- 1:length(x)
-  atac.x <- lapply(1:length(atac)+.10,function(z) jitter(rep(z,length(atac[[z]])),amount=.20))
-  panel.dotplot(xval,y,...,col=1,cex=cex.x,pch=NA)
-  mapply(filtpts,x=atac.x,y=atac,MoreArgs=list(
-    sel=T,pch=18,col='gray',cex=cex
-  ))
-  peak.sel <- lapply(
-    peak.sets,
-    function(i) lapply(atac, function(j) row.names(j)%in%i)
-  )
-  mapply(function(peak.sel,peak.cols) mapply(
-    filtpts,x=atac.x,y=atac,sel=peak.sel,
-    MoreArgs = list(pch=18,cex=cex,col=peak.cols)
-  ),peak.sel,peak.cols)
-  # panel.points(xval[!sig]-.25,y[!sig],pch=1,cex=cex.x,col=1)
-  # panel.points(xval[sig]-.25,y[sig],pch=19,cex=cex.x,col=1)
-  # draw lines at cutoffs
-  # if(!is.null(peak.sets)) panel.abline(h=lfc,col=1)
-  # draw line at 0
-  panel.abline(h=0,col=1,lty = 2)
-}
+# panel.rna <- function(
+#   x,y,groups,subscripts,atac,
+#   cex.x=1,
+#   sig=T,cex=.75,
+#   peak.sets=NULL,peak.cols=c('red','blue'),...
+# ){
+#   y[y=0] <- NA
+#   atac <- atac[subscripts]
+#   sig <- sig[subscripts]
+#   xval <- 1:length(x)
+#   panel.dotplot(xval,y,...,col=1,cex=cex.x,pch=NA,col.line = NA)
+#   panel.points(xval[!sig]-.10,y[!sig],pch=1,cex=cex.x,col=1)
+#   # if(!is.null(sig)){
+#     # sig <- sig[as.character(x)]
+#     panel.points(xval[sig]-.10,y[sig],pch=19,cex=cex.x,col=1)
+#   # }
+#   # draw lines at cutoffs
+#   # if(!is.null(peak.sets)) panel.abline(h=lfc,col=1)
+#   # draw line at 0
+#   panel.abline(h=0,col=1)
+# }
+# 
+# panel.atac <- function(
+#   x,y,groups,subscripts,atac,
+#   cex.x=1,
+#   sig=T,cex=.75,
+#   peak.sets=NULL,peak.cols=c('red','blue'),...
+# ){
+#   y[y=0] <- NA
+#   atac <- atac[subscripts]
+#   sig <- sig[subscripts]
+#   xval <- 1:length(x)
+#   atac.x <- lapply(1:length(atac)+.10,function(z) jitter(rep(z,length(atac[[z]])),amount=.23))
+#   panel.dotplot(xval,y,...,col=1,cex=cex.x,pch=NA)
+#   mapply(filtpts,x=atac.x,y=atac,MoreArgs=list(
+#     sel=T,pch=18,col='gray',cex=cex
+#   ))
+#   peak.sel <- lapply(
+#     peak.sets,
+#     function(i) lapply(atac, function(j) row.names(j)%in%i)
+#   )
+#   mapply(function(peak.sel,peak.cols) mapply(
+#     filtpts,x=atac.x,y=atac,sel=peak.sel,
+#     MoreArgs = list(pch=18,cex=cex,col=peak.cols)
+#   ),peak.sel,peak.cols)
+#   # panel.points(xval[!sig]-.25,y[!sig],pch=1,cex=cex.x,col=1)
+#   # panel.points(xval[sig]-.25,y[sig],pch=19,cex=cex.x,col=1)
+#   # draw lines at cutoffs
+#   # if(!is.null(peak.sets)) panel.abline(h=lfc,col=1)
+#   # draw line at 0
+#   panel.abline(h=0,col=1,lty = 2)
+# }
 
 panel.rna.atac <- function(
   x,y,groups,subscripts,atac,
   cex.x=1,
-  sig=T,cex=.8,
+  sig=T,cex=.75,
   peak.sets=NULL,peak.cols=c('red','blue'),...
 ){
   y[y=0] <- NA
   atac <- atac[subscripts]
   sig <- sig[subscripts]
   xval <- 1:length(x)
-  atac.x <- lapply(1:length(atac)+.10,function(z) jitter(rep(z,nrow(atac[[z]])),amount=.20))
+  atac.x <- lapply(1:length(atac)+.10,function(z) jitter(rep(z,nrow(atac[[z]])),amount=.23))
   panel.dotplot(xval,y,...,col=1,cex=cex.x,pch=NA)
   mapply(filtpts,x=atac.x,y=atac,MoreArgs=list(
     sel=T,pch=18,col='gray',cex=cex

@@ -17,7 +17,7 @@ peakGeneAnnotation <- getAnnotation(con)
 gene.names <- peakGeneAnnotation$gene.names
 
 rna <- getRnaDat(con)[c(
-  "condtime_handrdnfgfr18hpf_lacz18hpf","condtime_foxfcamras18hpf_lacz18hpf",
+  "condtime_handrdnfgfr18hpf_handrlacz18hpf","condtime_foxfcamras18hpf_handrlacz18hpf",
   "MA_dnFGFR_LacZ_10hpf","FoxF10hpf_LacZ10hpf"
 )]
 rna$gfp.lacz <- rna$FoxF10hpf_LacZ10hpf
@@ -94,7 +94,8 @@ dbDiamondplot(
   # ),
   list(peaksets$tvcAcc,intersect(peaksets$tvcAcc,peaksets$closed6)),
   c('forestgreen','brown'),
-  list(prime.denovo),cols,'foxf',gene.peak.intersect = F
+  list(prime.denovo),cols,'foxf',
+  gene.peak.intersect = F
 )
 
 
@@ -105,7 +106,9 @@ dbDiamondplot(
     row.names(sig.sub(rna$condtime_foxfcamras18hpf_handrlacz18hpf)),
     row.names(sig.sub(rna$condtime_handrdnfgfr18hpf_handrlacz18hpf))
   )),
-  peaksets[c("heartAcc","asmAcc")],c('red','blue'),list(prime.denovo),cols,'mapk18denovo',F
+  peaksets[c("heartAcc","asmAcc")],c('red','blue'),
+  list(prime.denovo),cols,'mapk18denovo',
+  gene.peak.intersect = F
 )
 
 # Fig. S17B
@@ -125,15 +128,16 @@ dbDiamondplot(
   ),
   peaksets[c("heartAcc","asmAcc")],
   c('red','blue'),
-  list(prime.denovo),cols,'mapk18top50',F
+  list(prime.denovo),cols,'mapk18top50',
+  gene.peak.intersect = F
 )
 
 # Figs. 1E, 2C, 3A, S17A
 mapply(
   scatterRnaAtac,
   rna=rna[c(
-    'condtime_foxfcamras18hpf_lacz18hpf',
-    'condtime_handrdnfgfr18hpf_lacz18hpf',
+    'condtime_foxfcamras18hpf_handrlacz18hpf',
+    'condtime_handrdnfgfr18hpf_handrlacz18hpf',
     'FoxF10hpf_LacZ10hpf',
     'MA_dnFGFR_LacZ_10hpf'
   )],
