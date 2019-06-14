@@ -180,3 +180,27 @@ Heatmap(
 )
 dev.off()
 
+library(UpSetR)
+dir.eps('foxf_tvc')
+upset(
+  fromList(sapply(
+    peaksets[c('tvcAcc','closed6','closedFoxf')],
+    intersect,
+    geneToPeak(con,bulkGS$FoxFactivated)$PeakID
+  )),
+  shade.alpha = 1,
+  matrix.dot.alpha = 1,
+  order.by = 'freq'
+)
+dev.off()
+
+dir.eps('foxf_tvc_gene')
+upset(
+  fromList(append(
+    peaksets[c('tvcAcc','closed6','closedFoxf')],
+    list(targetGenes=unique(geneToPeak(con,bulkGS$FoxFactivated)$PeakID))
+  )),
+  shade.alpha = 1,
+  matrix.dot.alpha = 1
+)
+dev.off()

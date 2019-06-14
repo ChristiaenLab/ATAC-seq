@@ -449,7 +449,7 @@ diamondPlotPanel <- function(
       # print(subscripts)
       fn(
         x,y,groups,subscripts,...,atac=atac,
-        sig=dat$sig,cex=1.5,
+        sig=dat$sig,cex=1.75,
         peak.sets=peak.sets,peak.cols=peak.cols
       )
     }
@@ -525,7 +525,7 @@ filtpts <- function(x,y,sel,...,cex=.75){
 
 panel.rna.atac <- function(
   x,y,groups,subscripts,atac,
-  cex.x=1,
+  cex.x=1.25,
   sig=T,cex=.75,
   peak.sets=NULL,peak.cols=c('red','blue'),...
 ){

@@ -80,56 +80,88 @@ plotPeakMatches(
   cluster_columns=F
 )
 
-nkx <- import('nkx2_3.fa','fasta')
-names(nkx) <- c('Crobusta','Csavignyi')
-nkx.motifs <- matchMotifs(
-  known.motifs,
-  nkx,
-  # GRanges('KhC8',IRanges(4058582,4060915)),
-  # Cintestinalis,
-  out='positions')
-cr.nkx <- unlist(do.call(IRangesList,lapply(nkx.motifs,'[[',1)))
-cr.nkx <- GRanges('Crobusta',do.call(IRanges,as.data.frame(cr.nkx)),mcols(cr.nkx)$strand,score=mcols(cr.nkx)$score)
-cr.nkx$seq <- as.character(Views(nkx[[1]],ranges(cr.nkx)))
-cs.nkx <- unlist(do.call(IRangesList,lapply(nkx.motifs,'[[',2)))
-cs.nkx <- GRanges('Csavignyi',do.call(IRanges,as.data.frame(cs.nkx)),mcols(cs.nkx)$strand,score=mcols(cs.nkx)$score)
-cs.nkx$seq <- as.character(Views(nkx[[2]],ranges(cs.nkx)))
-nkx.matches <- c(cr.nkx,cs.nkx)
-nkx.matches$family <- homer.family[names(nkx.matches)]
-export(nkx.matches,'nkxMatches.gff3')
+alignMotifs <- function(fasta,motifs,species=c("Crobusta","Csavignyi"),suffix=''){
+  require(rtracklayer)
+  require(motifmatchr)
+  require(TFBSTools)
+  dat <- import(fasta,'fasta')
+  names(dat) <- species
+  family <- unlist(lapply(tags(motifs),'[[',"Family_Name"))
+  matches <- matchMotifs(
+    motifs,
+    dat,
+    out='positions'
+  )
+  matchpos <- sapply(1:length(species),function(x){
+    cr <- lapply(matches,'[[',x)
+    sel <- sapply(cr,length)>0
+    family <- family[sel]
+    cr <- cr[sel]
+    cr <- mapply(function(x,y){
+      mcols(x)$family <- y
+      return(x)
+    },cr,family)
+    cr <- do.call(IRangesList,cr)
+    cr <- unlist(cr)
+    cr <- GRanges(
+      species[x],
+      do.call(IRanges,as.data.frame(cr)),
+      mcols(cr)$strand,
+      score=mcols(cr)$score,
+      family=mcols(cr)$family
+    )
+    cr$seq <- as.character(Views(dat[[x]],ranges(cr)))
+    return(cr)
+  })
+  names(matchpos) <- species
+  # cr <- unlist(do.call(IRangesList,lapply(matches,'[[',1)))
+  # cr <- GRanges(species[1],do.call(IRanges,as.data.frame(cr)),mcols(cr)$strand,score=mcols(cr)$score)
+  # cr$seq <- as.character(Views(dat[[1]],ranges(cr)))
+  # cs <- unlist(do.call(IRangesList,lapply(matches,'[[',2)))
+  # cs <- GRanges(species[2],do.call(IRanges,as.data.frame(cs)),mcols(cs)$strand,score=mcols(cs)$score)
+  # cs$seq <- as.character(Views(dat[[2]],ranges(cs)))
+  matches <- Reduce(c,matchpos)
+  # matches$family <- family[names(matches)]
+  file <- paste0(sub('\\..*$','',fasta),suffix)
+  dir.export(matches,paste0(file,"Matches"),format = "gff3")
+  
+  x <- sapply(matchpos,function(x) sapply(
+    split(x,names(x)),
+    function(y) mcols(y)[which.max(y$score),c('score','family')]
+  ))
+  x <- lapply(x,do.call,what=rbind)
+  
+  x <- Reduce(function(i,j) merge(i,j,c("row.names",'family'),all=T),x)
+  y <- setNames(x[,-1:-2],species)
+  y <- as.matrix(y)
+  row.names(y) <- x[,1]#sub('(.{,20}).*','\\1',x[,1])
+  # y[is.na(y)] <- 0
+  sel <- !apply(y,1,anyNA)
+  # x <- motifScores(matchMotifs(
+  #   motifs,dat,out='scores'
+  # ))
+  # row.names(x) <- species
+  plotPeakMatches(
+    t(y[sel,]),
+    paste0(file,'Conserved'),
+    x$family[sel]
+  )
+}
 
-plotPeakMatches(
-  motifScores(matchMotifs(
-    known.motifs,nkx,out='scores'
-  ))[,sel],
-  'nkxConserved',
-  homer.family[sel],
-  column_labels=c('Crobusta','Csavignyi')
-)
+tmp <- cisbp.motifs
+names(tmp) <- sapply(
+  split(
+    sub("KH2013:",'',sub('.*_','',cisbpDat$GeneName)),
+    cisbpDat$Motif_ID
+  ),
+  paste,collapse=';'
+)[ID(cisbp.motifs)]
+tmp <- tmp[!is.na(names(tmp))]
 
-smurf <- import('smurf.fa','fasta')
-smurf.motifs <- matchMotifs(
-  known.motifs,
-  smurf,
-  out='positions')
-cr.smurf <- unlist(do.call(IRangesList,lapply(smurf.motifs,'[[',1)))
-cr.smurf <- GRanges('Crobusta',do.call(IRanges,as.data.frame(cr.smurf)),mcols(cr.smurf)$strand,score=mcols(cr.smurf)$score)
-cr.smurf$seq <- as.character(Views(smurf[[1]],ranges(cr.smurf)))
-cs.smurf <- unlist(do.call(IRangesList,lapply(smurf.motifs,'[[',2)))
-cs.smurf <- GRanges('Csavignyi',do.call(IRanges,as.data.frame(cs.smurf)),mcols(cs.smurf)$strand,score=mcols(cs.smurf)$score)
-cs.smurf$seq <- as.character(Views(smurf[[2]],ranges(cs.smurf)))
-smurf.matches <- c(cr.smurf,cs.smurf)
-smurf.matches$family <- homer.family[names(smurf.matches)]
-export(smurf.matches,'smurfMatches.gff3')
-
-plotPeakMatches(
-  motifScores(matchMotifs(
-    known.motifs,smurf,out='scores'
-  ))[,sel],
-  'smurfConserved',
-  homer.family[sel],
-  column_labels=c('Crobusta','Csavignyi')
-)
+alignMotifs('nkx2_3.fa',tmp,suffix = 'CISBP')
+alignMotifs('smurf.fa',tmp,suffix = 'CISBP')
+alignMotifs('hand.fa',tmp,suffix = 'CISBP')
+alignMotifs('handfull.fa',tmp,suffix = 'CISBP')
 
 nkx.motifs <- matchMotifs(selex.pwm8mer,GRanges('KhC8',IRanges(4058582,4060915)),Cintestinalis,out='positions')
 nkx.motifs <- unlist(nkx.motifs)

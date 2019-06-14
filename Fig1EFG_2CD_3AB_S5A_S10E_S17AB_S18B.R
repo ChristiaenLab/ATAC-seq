@@ -92,12 +92,24 @@ dbDiamondplot(
   #     con,x,peaksets$closedFoxf
   #   )$GeneID
   # ),
-  list(peaksets$tvcAcc,intersect(peaksets$tvcAcc,peaksets$closed6)),
-  c('forestgreen','brown'),
+  list(peaksets$tvcAcc),
+  c('forestgreen'),
   list(prime.denovo),cols,'foxf',
   gene.peak.intersect = F
 )
 
+dbHeatmap(
+  con,rna,atac,
+  # sapply(
+    bulkGS[c(
+      "FoxFactivated","FoxFinhibited"
+    )],
+  list(peaksets$tvcAcc),
+  c('forestgreen'),
+  list(scrna=prime.denovo),list(scrna=cols),
+  'foxf',
+  gene.peak.intersect = F
+)
 
 # Figs. 3B, S18A 
 dbDiamondplot(
@@ -150,10 +162,10 @@ mapply(
   filename=c('handr_mekmut','handr_dnfgfr','foxf_ko','mesp_dnfgfr'),
   lfc=list(c(1,.5),c(1,.5),c(.75,.45),c(1,.7)),
   genes=list(
-    prime.denovo[1:4],
-    prime.denovo[1:4],
-    prime.denovo[c(5,7,1:4)],
-    prime.denovo[c(5,7,1:4)]
+    scrna[13:16],
+    scrna[13:16],
+    scrna[c(7,10,13:16)],
+    scrna[c(7,10,13:16)]
   ),
   col=list(
     c('red','blue','red','blue'),
@@ -334,3 +346,58 @@ cor(
   method = 'spearman'
 )
 
+dir.eps('foxf_6_10')
+plot(
+  atac$condition_FoxF_KO_vs_control$log2FoldChange,
+  atac$time_6hpf_vs_10hpf$log2FoldChange,
+  pch=19,col='gray',xlim=c(-2.5,2.5),ylim=c(-4,4),
+  cex=1.5,cex.axis=1.5
+)
+
+points(
+  foxfSig[scrnaGenePeak$ATM$PeakID,"log2FoldChange"],
+  timeSig[scrnaGenePeak$ATM$PeakID,"log2FoldChange"],
+  pch=19,col='gray28',cex=1.5
+)
+points(
+  foxfSig[scrnaGenePeak$TVCP$PeakID,"log2FoldChange"],
+  timeSig[scrnaGenePeak$TVCP$PeakID,"log2FoldChange"],
+  pch=19,col='forestgreen',cex=1.5
+)
+
+points(
+  foxfSig[scrnaGenePeak$primedASM$PeakID,"log2FoldChange"],
+  timeSig[scrnaGenePeak$primedASM$PeakID,"log2FoldChange"],
+  pch=19,col='blue',cex=1.5
+)
+
+points(
+  foxfSig[scrnaGenePeak$primedCardiac$PeakID,"log2FoldChange"],
+  timeSig[scrnaGenePeak$primedCardiac$PeakID,"log2FoldChange"],
+  pch=19,col='red',cex=1.5
+)
+
+points(
+  foxfSig[scrnaGenePeak$denovoASM$PeakID,"log2FoldChange"],
+  timeSig[scrnaGenePeak$denovoASM$PeakID,"log2FoldChange"],
+  pch=1,col='blue',cex=1.5
+)
+
+points(
+  foxfSig[scrnaGenePeak$denovoCardiac$PeakID,"log2FoldChange"],
+  timeSig[scrnaGenePeak$denovoCardiac$PeakID,"log2FoldChange"],
+  pch=1,col='red',cex=1.5
+)
+lines(c(0,0),c(-4,4))
+lines(c(-2.5,2.5),c(0,0))
+dev.off()
+# Fig. 1F Spearman correlation
+cor(
+  atac$condition_mesp_dnFGFR_vs_control[
+    union(peaksets$mespDep,peaksets$timeDep),'log2FoldChange'
+    ],
+  atac$time_6hpf_vs_10hpf[
+    union(peaksets$mespDep,peaksets$timeDep),'log2FoldChange'
+  ],
+  method = 'spearman'
+)

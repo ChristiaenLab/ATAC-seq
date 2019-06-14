@@ -18,7 +18,14 @@ plotPeakMatches <- function(
   matches <- t(apply(matches,1,as.numeric))
   colnames(matches) <- motifs
   height <- nrow(matches)/6+2
-  width <- ncol(matches)*.25+5
+  heatmap_width <- ncol(matches)*.2
+  group.width <- .1*max(nchar(split))
+  ann.width <- .1*max(nchar(row.names(matches)))
+  width <- group.width+heatmap_width+ann.width+1
+  ann.names <- rowAnnotation(
+    TF=row_anno_text(row.names(matches)),
+    width=unit(ann.width,"in")
+  )
   dir.eps(file,width=width,height=height)
   draw(col.hmap(
     matches,
@@ -28,6 +35,10 @@ plotPeakMatches <- function(
     split=split,
     col.split=col.split,
     col = c('white','black'),
+    # heatmap_width=unit(heatmap_width,'in'),
+    right_annotation=ann.names,
+    show_row_names = F,
+    cluster_columns=F,
     ...
   ))
   dev.off()
