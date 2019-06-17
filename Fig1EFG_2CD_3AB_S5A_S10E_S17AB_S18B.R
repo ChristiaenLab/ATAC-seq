@@ -1,6 +1,7 @@
 #Figs. 1EFG, 2CD,3AB, S5A, S10E, S17AB, S18B
 
-source('data/dbDiamond.R')
+# source('data/dbDiamond.R')
+source('data/dbHeatmap.R')
 source('data/sqlfns.R')
 source('data/dirfns.R')
 source('data/scatterplotfns.R')
@@ -17,15 +18,16 @@ peakGeneAnnotation <- getAnnotation(con)
 gene.names <- peakGeneAnnotation$gene.names
 
 rna <- getRnaDat(con)[c(
-  "condtime_handrdnfgfr18hpf_handrlacz18hpf","condtime_foxfcamras18hpf_handrlacz18hpf",
-  "MA_dnFGFR_LacZ_10hpf","FoxF10hpf_LacZ10hpf"
+  "MA_dnFGFR_LacZ_10hpf","FoxF10hpf_LacZ10hpf",
+  "condtime_handrdnfgfr18hpf_handrlacz18hpf",
+  "condtime_foxfcamras18hpf_handrlacz18hpf"
 )]
-rna$gfp.lacz <- rna$FoxF10hpf_LacZ10hpf
-rna$gfp.lacz$log2FoldChange <- NA
-rna$gfp.lacz$padj <- 1
+# rna$gfp.lacz <- rna$FoxF10hpf_LacZ10hpf
+# rna$gfp.lacz$log2FoldChange <- NA
+# rna$gfp.lacz$padj <- 1
 atac <- getAtacLib(con,c(
-  "condition_handr_dnFGFR_vs_control","condition_handr_MekMut_vs_control",
   "condition_mesp_dnFGFR_vs_control","condition_FoxF_KO_vs_control",
+  "condition_handr_dnFGFR_vs_control","condition_handr_MekMut_vs_control",
   "tissue_B7.5_vs_mesenchyme"
 ))
 
@@ -73,37 +75,46 @@ mapk10quant <- lapply(
   )$GeneID)
 )
 
-dbDiamondplot(
-  con,rna,atac,
+# dbDiamondplot(
+#   con,rna,atac,
+#   mapk10quant,
+#   peaksets[c("tvcAcc","atmAcc")],
+#   c('forestgreen','gray28'),
+#   list(prime.denovo),cols,'mapk10'
+# )
+
+# Fig. 2D
+# dbDiamondplot(
+#   con,rna,atac,
+#   # sapply(
+#     bulkGS[c(
+#       "FoxFactivated","FoxFinhibited"
+#     )],
+#   #   function(x) mergeGenePeak(
+#   #     con,x,peaksets$closedFoxf
+#   #   )$GeneID
+#   # ),
+#   list(peaksets$tvcAcc),
+#   c('forestgreen'),
+#   list(prime.denovo),cols,'foxf',
+#   gene.peak.intersect = F
+# )
+
+dbHeatmap(
+  con,rna[1:2],
+  atac["condition_mesp_dnFGFR_vs_control"],
   mapk10quant,
   peaksets[c("tvcAcc","atmAcc")],
   c('forestgreen','gray28'),
-  list(prime.denovo),cols,'mapk10'
-)
-
-# Fig. 2D
-dbDiamondplot(
-  con,rna,atac,
-  # sapply(
-    bulkGS[c(
-      "FoxFactivated","FoxFinhibited"
-    )],
-  #   function(x) mergeGenePeak(
-  #     con,x,peaksets$closedFoxf
-  #   )$GeneID
-  # ),
-  list(peaksets$tvcAcc),
-  c('forestgreen'),
-  list(prime.denovo),cols,'foxf',
-  gene.peak.intersect = F
+  list(scrna=prime.denovo),list(scrna=cols),
+  'mapk10'
 )
 
 dbHeatmap(
-  con,rna,atac,
-  # sapply(
-    bulkGS[c(
-      "FoxFactivated","FoxFinhibited"
-    )],
+  con,rna[1:2],atac["condition_FoxF_KO_vs_control"],
+  bulkGS[c(
+    "FoxFactivated","FoxFinhibited"
+  )],
   list(peaksets$tvcAcc),
   c('forestgreen'),
   list(scrna=prime.denovo),list(scrna=cols),
@@ -111,21 +122,38 @@ dbHeatmap(
   gene.peak.intersect = F
 )
 
+
 # Figs. 3B, S18A 
-dbDiamondplot(
-  con,rna,atac,
-  sapply(prime.denovo[c('denovoCardiac','denovoASM')],intersect,union(
-    row.names(sig.sub(rna$condtime_foxfcamras18hpf_handrlacz18hpf)),
-    row.names(sig.sub(rna$condtime_handrdnfgfr18hpf_handrlacz18hpf))
-  )),
+dbHeatmap(
+  con,rna,atac[3:4],
+  sapply(
+    prime.denovo[c('denovoCardiac','denovoASM')],
+    intersect,
+    union(
+      row.names(sig.sub(rna$condtime_foxfcamras18hpf_handrlacz18hpf)),
+      row.names(sig.sub(rna$condtime_handrdnfgfr18hpf_handrlacz18hpf))
+    )
+  ),
   peaksets[c("heartAcc","asmAcc")],c('red','blue'),
-  list(prime.denovo),cols,'mapk18denovo',
+  list(scrna=prime.denovo),list(scrna=cols),
+  'mapk18denovo',
   gene.peak.intersect = F
 )
 
+# dbDiamondplot(
+#   con,rna,atac,
+#   sapply(prime.denovo[c('denovoCardiac','denovoASM')],intersect,union(
+#     row.names(sig.sub(rna$condtime_foxfcamras18hpf_handrlacz18hpf)),
+#     row.names(sig.sub(rna$condtime_handrdnfgfr18hpf_handrlacz18hpf))
+#   )),
+#   peaksets[c("heartAcc","asmAcc")],c('red','blue'),
+#   list(prime.denovo),cols,'mapk18denovo',
+#   gene.peak.intersect = F
+# )
+
 # Fig. S17B
-dbDiamondplot(
-  con,rna,atac,
+dbHeatmap(
+  con,rna,atac[3:4],
   list(
     MAPKinhibited=union(bulkGS$MAPK18inhibited[
       order(rna$condtime_foxfcamras18hpf_handrlacz18hpf[
@@ -140,9 +168,29 @@ dbDiamondplot(
   ),
   peaksets[c("heartAcc","asmAcc")],
   c('red','blue'),
-  list(prime.denovo),cols,'mapk18top50',
+  list(scrna=prime.denovo),list(scrna=cols),
+  'mapk18top50',
   gene.peak.intersect = F
 )
+# dbDiamondplot(
+#   con,rna,atac,
+#   list(
+#     MAPKinhibited=union(bulkGS$MAPK18inhibited[
+#       order(rna$condtime_foxfcamras18hpf_handrlacz18hpf[
+#         bulkGS$MAPK18inhibited,'log2FoldChange'
+#       ])[1:50]
+#     ],intersect(prime.denovo$TVCP,bulkGS$MAPK18inhibited)),
+#     MAPKactivated=union(bulkGS$MAPK18activated[
+#       order(rna$condtime_handrdnfgfr18hpf_handrlacz18hpf[
+#         bulkGS$MAPK18activated,'log2FoldChange'
+#       ])[1:50]
+#     ],intersect(prime.denovo$STVC,bulkGS$MAPK18activated))
+#   ),
+#   peaksets[c("heartAcc","asmAcc")],
+#   c('red','blue'),
+#   list(prime.denovo),cols,'mapk18top50',
+#   gene.peak.intersect = F
+# )
 
 # Figs. 1E, 2C, 3A, S17A
 mapply(
