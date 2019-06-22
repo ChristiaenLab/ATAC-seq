@@ -99,6 +99,13 @@ alignMotifs('smurf.fa',tmp,suffix = 'CISBP')
 alignMotifs('hand.fa',tmp,suffix = 'CISBP')
 alignMotifs('handfull.fa',tmp,suffix = 'CISBP')
 
+source('data/getSelex.R')
+selex.pwm8mer <- getSelex()
+alignMotifs('nkx2_3.fa',selex.pwm8mer,suffix = 'SELEX',bg='even')
+alignMotifs('smurf.fa',selex.pwm8mer,suffix = 'SELEX',bg='even')
+alignMotifs('hand.fa',selex.pwm8mer,suffix = 'SELEX',bg='even')
+alignMotifs('handfull.fa',selex.pwm8mer,suffix = 'SELEX',bg='even')
+
 nkx.motifs <- matchMotifs(selex.pwm8mer,GRanges('KhC8',IRanges(4058582,4060915)),Cintestinalis,out='positions')
 nkx.motifs <- unlist(nkx.motifs)
 nkx.motifs$seq <- as.character(Views(Cintestinalis,nkx.motifs))

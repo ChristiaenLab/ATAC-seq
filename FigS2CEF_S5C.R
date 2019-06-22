@@ -1,3 +1,4 @@
+# Fig. S2CEF, S5C
 source("data/DESeqFns.R")
 promoterRna <- do.call(data.frame,lrtab('promoter_count',pattern = 'count',row.names=1))
 names(promoterRna) <- sub('_promoter.*','',list.files('promoter_count/','count'))
@@ -109,10 +110,12 @@ corHyper <- data.frame(sapply(
 ),row.names = colnames(promoterHyper)[c(14,17:25)])
 names(corHyper) <- colnames(promoterHyper)[c(14,17:25)]
 
+# Fig. S2F
 dir.eps('motifHyperCor')
 Heatmap(corHyper)
 dev.off()
 
+# Fig.S2E
 dir.eps('haberleMotifHyper')
 Heatmap(
   -log2(promoterHyper)[names(consensus)[c(-3,-4,-20)],c(26,29:37)],
@@ -145,6 +148,8 @@ dir.tab(t(matchHyper(sapply(atac,is.sig,lfc=0,p=.1),featsel)), "LFC0","atacFeatH
 #   c(1,round((ncol(featsel)-3)/2),ncol(featsel)-3),c('blue','white','red')
 # )(1:(ncol(featsel)-3)))
 # dev.off()
+
+# Fig. S5C
 dir.eps('barHyper2',width=14)
 barplotHyper(
   mapply(is.sig,atac[c(2:4,7:9,11,12)],lfc=.5,p=.05,tail='both'),
@@ -170,7 +175,7 @@ barplotHyper(
 )
 dev.off()
 
-
+# Fig. S2C
 venn <- list(
   promoterPeaks=names(peakGeneAnnotation$peaks)[promotersel],
   TSSseq=as.character(1:length(tsc)),

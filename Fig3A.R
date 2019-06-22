@@ -1,4 +1,4 @@
-# Figs. 2A, S20
+# Figs. 3A
 
 library(chromVAR)
 library(BSgenome.Cintestinalis.KH.JoinedScaffold)
@@ -13,14 +13,13 @@ source("data/chromVarPlotFns.R")
 
 con <- dbConnect(RSQLite::SQLite(),"data/atacCiona.db")
 
-# Fig. 2A
+# Fig. 3A
 mapk10 <- dbReadTable(con,'mapk10ChromVAR')[,-8]
 writeDevHmap(mapk10,"")
 
 writeChromVarHmap("2019-01-22/chromVAR/homer/mesp_all",.01,3)
 writeChromVarHmap("../hpcscripts/2019-02-01/chromVAR/homer/mesp")
 
-# Fig. S20
 
 load("2019-01-22/chromVAR/homer/denovoASM/deviations.Rdata")
 asmDev <- dev

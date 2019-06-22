@@ -34,7 +34,12 @@ getSelex <- function(){
     selex$Primary.gene.name,
     selex$Best.transcript.model,
     profileMatrix=profileMatrix8mer,
-    tags=lapply(selex$Family.Classification,function(x) list(family=x))
+    tags=mapply(
+      function(x,y) list(Family_Name=x,DBID.1=y),
+      selex$Family.Classification,
+      selex$Primary.gene.name,
+      SIMPLIFY = F
+    )
   )
   selex.pwm8mer <- do.call(PWMatrixList,selex.pwm8mer)
   return(selex.pwm8mer)

@@ -1,4 +1,4 @@
-#Figs. 1B, S6A
+#Figs. 1B, S5A
 
 library(DBI)
 library(ComplexHeatmap)
@@ -43,7 +43,7 @@ atac <- getAtacLib(con,c(
   "time_6hpf_vs_10hpf"
 ))
 
-#Fig. S6A
+#Fig. S5A
 dir.eps("rnaAtacCor")
 draw(col.hmap(
   rnaAtacCor(con,rna,atac),cluster_rows = F,cluster_columns = F,center=0

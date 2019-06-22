@@ -1,4 +1,4 @@
-# Figs. 1C, 3C, S15, S18C
+# Figs. 1C, 4C, S14B, S17B
 
 library(DBI)
 library(ComplexHeatmap)
@@ -142,7 +142,7 @@ acc <- list(
 )
 timeacc <- sapply(acc,intersect,peaksets$timeDep)
 
-# Fig. 3C, S18C
+# Fig. 4C, S17B
 mapply(
   function(genes,file) {
     genePeakHmap(
@@ -154,7 +154,7 @@ mapply(
   prime.denovo,paste0(names(prime.denovo),'AccTime')
 )
 
-# Fig. S15
+# Fig. S14B
 tmp <- mergeGenePeak(con,bulkGS$FoxFactivated,peaksets$timeDep)
 tmp[,1] <- gene.names[tmp$GeneID,"UniqueNAME"]
 dir.eps('foxfTime',height=nrow(tmp)/6+2)

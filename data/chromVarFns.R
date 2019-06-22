@@ -41,7 +41,7 @@ getHomerMotifs <- function(homerdat){
         ID=ID,
         name=ID,
         profileMatrix = profileMatrix,
-        tags = list(Family_Name=Family_Name,DBID.1=DBID.1)
+        tags = list(Family_Name=Family_Name,DBID.1=DBID.1,Motif_Type="HOMER")
       ))
     }
   ))

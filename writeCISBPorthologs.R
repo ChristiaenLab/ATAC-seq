@@ -16,8 +16,8 @@ cisbp.geneid$GeneID <- sub("KH2012","KH2013",cisbp.geneid$GeneID)
 cisbp.geneid$GeneName <- gene.names[cisbp.geneid$GeneID,]
 dir.tab(cisbp.geneid,'cisbpGeneID')
 
-cisbpDat <- cisbp.geneid[,c("Motif_ID","GeneID","GeneName","Family_Name","Motif_Type")]
+cisbpDat <- cisbp.geneid[,c("Motif_ID","DBID.1","GeneID","GeneName","Family_Name","Motif_Type")]
 cisbpDat <- cisbpDat[!duplicated(cisbpDat)&cisbpDat$Motif_ID!='.',]
-cisbpDat <- rbind(cisbpDat,c("EBF","KH2013:KH.L24.10", "EBF1/2/3/4","EBF","HOMER"))
+cisbpDat <- rbind(cisbpDat,c("EBF","EBF","KH2013:KH.L24.10", "EBF1/2/3/4","EBF","HOMER"))
 
 dbWriteTable(con,"cisbp_orthologs",cisbpDat)
