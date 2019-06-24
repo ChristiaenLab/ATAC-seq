@@ -9,6 +9,7 @@ source('data/chromVarFns.R')
 source('data/dirfns.R')
 source("data/sqlfns.R")
 source("data/getSelex.R")
+source("data/getMotifs.R")
 
 con <- dbConnect(RSQLite::SQLite(),'data/atacCiona.db')
 
@@ -25,7 +26,7 @@ expDesign <- expDesign[
 ]
 
 # motifs <- getHomerMotifs("known.motifs")
-motifs <- getSelex()
+motifs <- reduceMotifs(con)
 
 mespPeaks <- ann$peaks[peaksets$mespDep]
 mespDesign <- expDesign[

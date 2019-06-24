@@ -44,7 +44,7 @@ getMotifs <- function(con){
   return(motifs)
 }
 
-reduceMotifs <- function(con){
+reduceMotifs <- function(con,rmdup=T){
   require(TFBSTools)
   require(motifmatchr)
   require(DBI)
@@ -102,6 +102,11 @@ reduceMotifs <- function(con){
   
   
   motifs <- Reduce(append,list(selex.pwm,tmp2))
+  if(rmdup){
+    motifs <- motifs[!duplicated(names(motifs))]
+  }
+  ann <- getAnnotation(con)
+  motifs <- nameMotifs(motifs,ann$gene.names)
   return(motifs)
 }
 
@@ -123,6 +128,15 @@ mergeGeneName <- function(x,y){
 
 nameMotifs <- function(motifs,gene.names){
   require(TFBSTools)
+  tf.family <- sapply(tags(motifs),'[[',"Family_Name")
+  tf.family[grep("(Gata|Zn?F)",tf.family,T)] <- "Zinc finger"
+  tf.family[tf.family=="NR"] <- "Nuclear receptor"
+  tf.family[tf.family=="ETS"] <- "Ets"
+  tf.tags <- mapply(function(x,y){
+    x$Family_Name <- y
+    return(x)
+  },tags(motifs),tf.family)
+  
   tf.name <- sapply(tags(motifs),'[[',"DBID.1")
   tf.kh <- names(motifs)
   
@@ -145,8 +159,19 @@ nameMotifs <- function(motifs,gene.names){
   tf.kh.gene <- lapply(tf.kh.gene,Reduce,f=mergeGeneName)
   
   tf.kh.gene <- sapply(tf.kh.gene,paste,collapse=';')
+  
+  motifs <- mapply(
+    PWMatrix,
+    names(motifs),
+    tf.kh.gene,
+    strand="*",
+    tags=tf.tags,
+    profileMatrix=Matrix(motifs)
+  )
   names(motifs) <- make.unique(tf.kh.gene)
   sel <- grep("^KH\\.[A-Z][0-9]+",names(motifs))
   names(motifs)[sel] <- tf.name[sel]
+  
+  motifs <- do.call(PWMatrixList,motifs)
   return(motifs)
 }
