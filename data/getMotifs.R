@@ -52,6 +52,7 @@ reduceMotifs <- function(con,rmdup=T){
   
   source('data/chromVarFns.R')
   source('data/sqlfns.R')
+  source('data/getSelex.R')
   
   khToHomer <- dbReadTable(con,'homer_orthologs')
   khToCisbp <- dbReadTable(con,'cisbp_orthologs')

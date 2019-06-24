@@ -74,7 +74,7 @@ perform GSEA on peak accessibility
 #motif analysis of DA peaks
 add CIS-BP orthogs to database
 ```bash
-wget https://www.aniseed.cnrs.fr/aniseed/download/?file=data%2Fci%2FKH-ENS.blast.zip
+wget -O KH-ENS.blast.zip https://www.aniseed.cnrs.fr/aniseed/download/?file=data%2Fci%2FKH-ENS.blast.zip
 unzip KH-ENS.blast.zip
 Rscript writeCISBPorthologs.R
 ```
