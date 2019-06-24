@@ -121,7 +121,7 @@ zfilt <- function(dev,zCutoff) subMeta(dev,apply(
 getChromVAR <- function(
   expDesign,peaks,motifs,
   resizeWidth=200,
-  bamDir='/scratch/kaw504/atacCiona/atac/bam'
+  bamDir='.'
 ){
   # wrapper function for chromVAR::computeDeviations
   # 

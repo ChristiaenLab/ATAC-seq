@@ -94,16 +94,16 @@ names(tmp) <- sapply(
 )[ID(cisbp.motifs)]
 tmp <- tmp[!is.na(names(tmp))]
 
-alignMotifs('nkx2_3.fa',tmp,suffix = 'CISBP')
-alignMotifs('smurf.fa',tmp,suffix = 'CISBP')
-alignMotifs('hand.fa',tmp,suffix = 'CISBP')
-alignMotifs('handfull.fa',tmp,suffix = 'CISBP')
+alignMotifs('nkx2_3.fa',motifs,suffix = '',bg=bg)
+alignMotifs('smurf.fa',motifs,suffix = '',bg=bg)
+alignMotifs('hand.fa',motifs[!duplicated(ID(motifs))],suffix = 'rmdup',bg=bg)
+alignMotifs('handfull.fa',motifs,suffix = 'CISBP')
 
 source('data/getSelex.R')
 selex.pwm8mer <- getSelex()
-alignMotifs('nkx2_3.fa',selex.pwm8mer,suffix = 'SELEX',bg='even')
-alignMotifs('smurf.fa',selex.pwm8mer,suffix = 'SELEX',bg='even')
-alignMotifs('hand.fa',selex.pwm8mer,suffix = 'SELEX',bg='even')
+alignMotifs('nkx2_3.fa',selex.pwm8mer,suffix = 'SELEX',bg=bg)
+alignMotifs('smurf.fa',selex.pwm8mer,suffix = 'SELEX',bg=bg)
+alignMotifs('hand.fa',selex.pwm8mer,suffix = 'SELEX',bg=bg)
 alignMotifs('handfull.fa',selex.pwm8mer,suffix = 'SELEX',bg='even')
 
 nkx.motifs <- matchMotifs(selex.pwm8mer,GRanges('KhC8',IRanges(4058582,4060915)),Cintestinalis,out='positions')

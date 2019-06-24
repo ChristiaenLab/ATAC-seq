@@ -13,22 +13,22 @@ source("data/getMotifs.R")
 
 con <- dbConnect(RSQLite::SQLite(),'data/atacCiona.db')
 
-expDesign <- dbReadTable(con,"ataclib",row.names="lib")
 ann <- getAnnotation(con)
 peaksets <- getPeaksets(con)
 scrna <- getScRNA(con)
-
-row.names(expDesign) <- paste0(sub('^X','',row.names(expDesign)),'_q30_rmdup_KhM0_sorted')
-row.names(expDesign) <- paste0(row.names(expDesign),'.bam')
-
-expDesign <- expDesign[
-  expDesign$tissue=='B7.5'&expDesign$omit==0,
-]
-
 # motifs <- getHomerMotifs("known.motifs")
 motifs <- reduceMotifs(con)
 
 mespPeaks <- ann$peaks[peaksets$mespDep]
+
+expDesign <- dbReadTable(con,"ataclib",row.names="lib")
+row.names(expDesign) <- paste0(sub('^X','',row.names(expDesign)),'_q30_rmdup_KhM0_sorted')
+row.names(expDesign) <- paste0(row.names(expDesign),'.bam')
+
+expDesign <- expDesign[
+  expDesign$tissue=='B7.5'&expDesign$omit==0,c("Name","condition","time")
+]
+
 mespDesign <- expDesign[
   expDesign$time%in%c('6hpf','10hpf'),
 ]

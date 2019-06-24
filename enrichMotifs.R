@@ -22,10 +22,10 @@ bg <- apply(bg,2,sum)
 bg <- bg/sum(bg)
 matches <- matchMotifs(motifs,ann$peaks,Cintestinalis,bg=bg)
 
-hyper <- lapply(append(peaksets[1:12],setNames(
+hyper <- lapply(append(peaksets[c(5,6,1,2)],setNames(
   lapply(peaksets[c('open6','closed6')],intersect,peaksets$tvcAcc),
   c("earlyTVC","lateTVC")
-)),lHyper,motifMatches(matches))
+),3),lHyper,motifMatches(matches))
 
 odds <- sapply(hyper,'[',,'log2OddsRatio')
 fdr <- sapply(hyper,'[',,'padj')
@@ -64,13 +64,13 @@ row.names(mat) <- make.unique(as.character(mat$TF))
 
 # heatmap_width <- .25+max(nchar(row.names(mat)))*.05+max(nchar(as.character(mat$family)))*.05+(ncol(mat)-3)/4+heatmap_width
 heatmap_height <- nrow(mat)/4+max(nchar(names(mat)))*.05
-lwidth <- max(nchar(mat$family))*.05
-rwidth <- max(nchar(row.names(mat)))*.05
+lwidth <- max(nchar(mat$family))*.10
+rwidth <- max(nchar(row.names(mat)))*.10
 
 hm2 <- Heatmap(
   as.matrix(mat[,names(ma)]),
   split=mat$family,
-  heatmap_width = unit(ncol(ma)*.25+rwidth+.5,'in'),
+  heatmap_width = unit(ncol(ma)*.20+rwidth+.5,'in'),
   heatmap_height = unit(heatmap_height,'in'),
   cluster_columns = F,
   cluster_rows = T,
@@ -82,13 +82,14 @@ hm2 <- Heatmap(
 )
 hm1 <- abs.hmap(
   as.matrix(mat[,names(odds)[c(-1:-3)]]),
-  breaks = c(0,4),
+  # breaks = c(0,4),
   split=mat$family,
+  cluster_columns = F,
   cluster_row_slices=T,
   show_column_dend=F,
   show_row_dend=F,
   row_dend_side='right',
-  heatmap_width = unit(lwidth+(ncol(odds)-3)*.25+.5,'in'),
+  heatmap_width = unit(lwidth+(ncol(odds)-3)*.20+.5,'in'),
   heatmap_height = unit(heatmap_height,'in'),
   # heatmap_width = unit((ncol(odds)-2)/4+heatmap_width,'in'),
   # heatmap_height = unit(heatmap_height,'in')
@@ -96,8 +97,8 @@ hm1 <- abs.hmap(
   row_title_gp = gpar(cex=1)
 )
 dir.eps(
-  "tmp2",
-  width=(ncol(ma)-3)*.25+6+.25+lwidth+rwidth,
+  "or1.5",
+  width=(ncol(mat)-3)*.25+2+.25+lwidth+rwidth,
   height=heatmap_height+4
 )
 draw(hm1+hm2)
