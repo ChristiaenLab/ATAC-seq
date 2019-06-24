@@ -11,6 +11,8 @@ source('data/getMotifs.R')
 con <- dbConnect(RSQLite::SQLite(),'data/atacCiona.db')
 
 ann <- getAnnotation(con)
+peaksets <- getPeaksets(con)
+
 motifs <- reduceMotifs(con)
 tf.name <- sapply(tags(motifs),'[[',"DBID.1")
 tf.family <- sapply(tags(motifs),'[[',"Family_Name")
