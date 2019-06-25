@@ -121,7 +121,7 @@ zfilt <- function(dev,zCutoff) subMeta(dev,apply(
 getChromVAR <- function(
   expDesign,peaks,motifs,
   resizeWidth=200,
-  bamDir='bam'
+  bamDir='.'
 ){
   # wrapper function for chromVAR::computeDeviations
   # 
@@ -156,13 +156,13 @@ getChromVAR <- function(
   # computing deviations
   dev <- computeDeviations(
     object = counts,  annotations = matches)
-  mcols(dev) <- cbind(
-    mcols(dev),
-    as.data.frame(
-      t(sapply(tags(motifs),unlist)),
-      stringsAsFactors=F
-    )
-  )
+  # mcols(dev) <- cbind(
+  #   mcols(dev),
+  #   as.data.frame(
+  #     t(sapply(tags(motifs),unlist)),
+  #     stringsAsFactors=F
+  #   )
+  # )
   return(dev)
 }
 

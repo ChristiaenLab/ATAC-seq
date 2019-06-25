@@ -38,11 +38,11 @@ sel <- split(names(motifs),ID(motifs))
 dupct <- lapply(sel,function(x) apply(motifMatches(matches)[,x,drop=F],2,sum))
 sel <- sapply(dupct,function(x) names(x)[which.max(x)])
 
-tf.name <- sapply(tags(motifs),'[[',"DBID.1")
-tf.family <- sapply(tags(motifs),'[[',"Family_Name")
+tf.name <- sapply(tags(motifs[sel]),'[[',"DBID.1")
+tf.family <- sapply(tags(motifs[sel]),'[[',"Family_Name")
+tf.kh <- ID(motifs[sel])
 
 library(chromVAR)
-source("data/chromVarPlotFns.R")
 load('2019-06-25/chromVarOut.Rdata')
 
 mespDev <- mespDev[c(-6,-12:-15)]
@@ -62,13 +62,13 @@ matches <- matchMotifs(motifs,ann$peaks,Cintestinalis,bg=bg)
 hyper <- lapply(append(peaksets[c(5,6,1,2)],setNames(
   lapply(peaksets[c('open6','closed6')],intersect,peaksets$tvcAcc),
   c("earlyTVC","lateTVC")
-),3),lHyper,motifMatches(matches))
+),3),lHyper,motifMatches(matches)[,sel])
 
 odds <- sapply(hyper,'[',,'log2OddsRatio')
 fdr <- sapply(hyper,'[',,'padj')
 odds[fdr>.05] <- 0
 # row.names(odds) <- names(motifs)
-odds <- cbind(TFGeneID=tf.kh,TF=names(motifs),family=tf.family,as.data.frame(odds),stringsAsFactors=F)
+odds <- cbind(TFGeneID=tf.kh,TF=names(motifs[sel]),family=tf.family,as.data.frame(odds),stringsAsFactors=F)
 odds <- odds[!apply(odds[,-1:-3]<1.5,1,all),c(rep(T,3),!apply(odds[,-1:-3]<1.5,2,all))]
 
 mat <- merge(odds,dev,'row.names')[,-1]
@@ -159,11 +159,11 @@ hm3 <- Heatmap(
 )
 
 dir.eps(
-  "or1.5",
+  "or1.5maxct",
   width=(ncol(mat)-3)*.25+2+.25+lwidth+rwidth,
   height=heatmap_height+4
 )
-draw(hm1+hm3+hm2)
+draw(hm1+hm2)
 dev.off()
 
 hm3 <- Heatmap(
