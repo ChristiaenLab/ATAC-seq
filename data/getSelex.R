@@ -35,9 +35,10 @@ getSelex <- function(){
     selex$Best.transcript.model,
     profileMatrix=profileMatrix8mer,
     tags=mapply(
-      function(x,y) list(Family_Name=x,DBID.1=y),
-      selex$Family.Classification,
-      selex$Primary.gene.name,
+      list,
+      Family_Name=selex$Family.Classification,
+      DBID.1=selex$Primary.gene.name,
+      MoreArgs = list(Motif_Type="ANISEED",strand="*"),
       SIMPLIFY = F
     )
   )

@@ -17,7 +17,7 @@ ann <- getAnnotation(con)
 peaksets <- getPeaksets(con)
 scrna <- getScRNA(con)
 # motifs <- getHomerMotifs("known.motifs")
-motifs <- reduceMotifs(con)
+motifs <- reduceMotifs(con,F,F,F)
 
 mespPeaks <- ann$peaks[peaksets$mespDep]
 

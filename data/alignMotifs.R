@@ -34,6 +34,7 @@ alignMotifs <- function(fasta,motifs,species=c("Crobusta","Csavignyi"),suffix=''
   })
   names(matchpos) <- species
   matches <- Reduce(c,matchpos)
+  # names(matches) <- name(motifs[names(matches)])
   file <- paste0(sub('\\..*$','',fasta),suffix)
   dir.export(matches,paste0(file,"Matches"),format = "gff3")
   

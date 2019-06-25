@@ -44,7 +44,7 @@ getMotifs <- function(con){
   return(motifs)
 }
 
-reduceMotifs <- function(con,rmdup=T){
+reduceMotifs <- function(con,rmdup=T,khid.sub=T,selex.first=T){
   require(TFBSTools)
   require(motifmatchr)
   require(DBI)
@@ -56,22 +56,36 @@ reduceMotifs <- function(con,rmdup=T){
   
   khToHomer <- dbReadTable(con,'homer_orthologs')
   khToCisbp <- dbReadTable(con,'cisbp_orthologs')
-  khToMotif <- rbind(khToHomer[,c(1,3)],setNames(khToCisbp[,c(1,3)],c('ID',"GeneID")))
   
   selex.pwm <- getSelex()
   cisbp.pwm <- getCisbpMotifs()
   homer.pwm <- getHomerMotifs('known.motifs')
-  comb.pwm <- append(homer.pwm,cisbp.pwm)
+  
+  sel <- names(selex.pwm)%in%names(homer.pwm)
+  names(selex.pwm)[sel] <- paste0(names(selex.pwm)[sel],"ANISEED")
+  
+  comb.pwm <- Reduce(append,list(selex.pwm,homer.pwm,cisbp.pwm))
+  
+  khToMotif <- rbind(
+    cbind(ID=names(selex.pwm),GeneID=name(selex.pwm)),
+    khToHomer[,c(1,3)],
+    setNames(khToCisbp[,c(1,3)],c('ID',"GeneID")),
+    stringsAsFactors=F
+  )
+  
   khToMotif <- khToMotif[khToMotif$ID%in%names(comb.pwm),]
-  khToMotif <- khToMotif[!khToMotif$GeneID%in%name(selex.pwm),]
   khToMotif <- khToMotif[!duplicated(khToMotif),]
   
+  if(selex.first){
+    khToMotif <- khToMotif[!khToMotif$GeneID%in%name(selex.pwm),]
+    motifs <- selex.pwm
+    names(motifs) <- name(selex.pwm)
+  } else motifs <- NULL
   # khToHomer <- split(khToHomer$GeneID,khToHomer$ID)
   # khToHomer <- khToHomer[sapply(khToHomer,function(x) !any(x%in%name(selex.pwm)))]
   # 
   # homer.pwm <- homer.pwm[names(khToHomer)]
   # names(homer.pwm) <- sapply(khToHomer,paste,collapse=';')
-  names(selex.pwm) <- name(selex.pwm)
   # 
   # khToCisbp <- khToCisbp[!khToCisbp$GeneID%in%c(
   #   names(selex.pwm),unlist(khToHomer)
@@ -102,12 +116,12 @@ reduceMotifs <- function(con,rmdup=T){
   # },tmp$motifs,NULL)
   
   
-  motifs <- Reduce(append,list(selex.pwm,tmp2))
+  motifs <- Reduce(append,list(motifs,tmp2))
   if(rmdup){
     motifs <- motifs[!duplicated(names(motifs))]
   }
   ann <- getAnnotation(con)
-  motifs <- nameMotifs(motifs,ann$gene.names)
+  motifs <- nameMotifs(motifs,ann$gene.names,khid.sub=khid.sub)
   return(motifs)
 }
 
@@ -127,7 +141,7 @@ mergeGeneName <- function(x,y){
   return(x)
 }
 
-nameMotifs <- function(motifs,gene.names){
+nameMotifs <- function(motifs,gene.names,khid.sub=T){
   require(TFBSTools)
   tf.family <- sapply(tags(motifs),'[[',"Family_Name")
   tf.family[grep("(Gata|Zn?F)",tf.family,T)] <- "Zinc finger"
@@ -147,8 +161,12 @@ nameMotifs <- function(motifs,gene.names){
   ))
   tf.kh.gene <- sapply(tf.kh.gene,sub,pattern=';$',replace='')
   tf.kh.gene <- lapply(tf.kh.gene,function(x) x[!duplicated(x)])
-  sel <- sapply(tf.kh.gene,function(x) all(grepl("^KH\\.[A-Z][0-9]+",x)))
-  tf.kh.gene[sel] <- sapply(ID(motifs)[sel],list)
+  
+  if(khid.sub){
+    sel <- sapply(tf.kh.gene,function(x) all(grepl("^KH\\.[A-Z][0-9]+",x)))
+    tf.kh.gene[sel] <- sapply(ID(motifs)[sel],list)
+  }
+  
   tf.kh.gene <- lapply(tf.kh.gene,sub,pattern='V\\$',replacement='')
   tf.kh.gene <- lapply(tf.kh.gene,function(y) sapply(y,function(x) if(
     grepl("^[A-Z]{2}",x)&!(grepl("^KH\\.",x)|grepl("^SI:",x))
@@ -170,8 +188,6 @@ nameMotifs <- function(motifs,gene.names){
     profileMatrix=Matrix(motifs)
   )
   names(motifs) <- make.unique(tf.kh.gene)
-  sel <- grep("^KH\\.[A-Z][0-9]+",names(motifs))
-  names(motifs)[sel] <- tf.name[sel]
   
   motifs <- do.call(PWMatrixList,motifs)
   return(motifs)
