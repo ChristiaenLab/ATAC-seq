@@ -52,7 +52,7 @@ asmDev <- getChromVAR(expDesign,ann$peaks[denovoASMPeaks],motifs)
 
 asmCardiacDev <- getChromVAR(expDesign,ann$peaks[
   union(denovoASMPeaks,denovoCardiacPeaks)
-])
+],motifs)
 
 save(
   dev,mespDev,cardiacDev,asmDev,asmCardiacDev,

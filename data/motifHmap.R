@@ -1,5 +1,5 @@
 motifHmap <- function(
-  con,hyper,dev,motifs,genes=NULL,file,p=.05,or=1.5
+  con,hyper,dev,motifs,genes=NULL,file,p=.05,or=0
 ){
   require(ComplexHeatmap)
   require(circlize)
@@ -38,7 +38,7 @@ motifHmap <- function(
   row.names(odds) <- row.names(dat)
   odds <- odds[
     !apply(odds<or,1,all),
-    !apply(odds[,-1:-3]<or,2,all)
+    !apply(odds<or,2,all)
   ]
   
   dat <- merge(dat,odds,'row.names')[,-1]
