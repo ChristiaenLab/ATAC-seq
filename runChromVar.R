@@ -26,12 +26,15 @@ row.names(expDesign) <- paste0(sub('^X','',row.names(expDesign)),'_q30_rmdup_KhM
 row.names(expDesign) <- paste0(row.names(expDesign),'.bam')
 
 expDesign <- expDesign[
-  expDesign$tissue=='B7.5'&expDesign$omit==0,c("Name","condition","time")
+  expDesign$tissue=='B7.5'&expDesign$omit==0&expDesign$KO!=1,c("Name","condition","time")
 ]
 
 mespDesign <- expDesign[
   expDesign$time%in%c('6hpf','10hpf'),
 ]
+
+dev <- getChromVAR(expDesign,ann$peaks[Reduce(union,peaksets[c("timeDep","mespDep","handrDep")])])
+
 mespDev <- getChromVAR(mespDesign,mespPeaks,motifs)
 
 denovoCardiacPeaks <- ann$peaks[
@@ -52,6 +55,6 @@ save(
 mapply(
   dbWriteTable,
   c('mapk10chromVAR','denovoCardiacChomVAR','denovoAsmChromVAR'),
-  lapply(list(mespDev,cardiacDev,asmDev),chromVarTable),
+  lapply(list(dev,mespDev,cardiacDev,asmDev),chromVarTable),
   MoreArgs = list(conn=con)
 )

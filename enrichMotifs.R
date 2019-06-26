@@ -4,6 +4,8 @@ library(DBI)
 library(BSgenome.Cintestinalis.KH.JoinedScaffold)
 library(ComplexHeatmap)
 library(circlize)
+library(chromVAR)
+library(SummarizedExperiment)
 
 source('data/chromVarFns.R')
 source('data/sqlfns.R')
@@ -35,29 +37,47 @@ alignMotifs('handfull.fa',suffix = 'dup',motif.dup,bg=bg)
 matches <- matchMotifs(motifs,ann$peaks,Cintestinalis,bg=bg)
 sel <- split(names(motifs),ID(motifs))
 
+fn <- function(x){
+  if(length(x)>1){
+    pwms <- combn(x,2)
+    pearson <- apply(pwms,2,function(x) PWMSimilarity(
+      motifs[[x[1]]],
+      motifs[[x[2]]],
+      "Pearson"
+    ))
+    return(x[!x%in%pwms[2,pearson>.90]])
+  } else return(x)
+}
+
+motif.cor <- lapply(sel, fn)
+
 dupct <- lapply(sel,function(x) apply(motifMatches(matches)[,x,drop=F],2,sum))
 sel <- sapply(dupct,function(x) names(x)[which.max(x)])
 
+sel <- unlist(motif.cor)
 tf.name <- sapply(tags(motifs[sel]),'[[',"DBID.1")
 tf.family <- sapply(tags(motifs[sel]),'[[',"Family_Name")
 tf.kh <- ID(motifs[sel])
 
-library(chromVAR)
 load('2019-06-25/chromVarOut.Rdata')
 
-mespDev <- mespDev[c(-6,-12:-15)]
+mespDev <- mespDev[,c(-6,-12:-15)]
 diff_acc <- differentialDeviations(mespDev,'condtime')
+
+sel <- split(names(motifs),ID(motifs))
+sel <- sapply(sel,function(x) x[which.min(diff_acc[x,1])])
 
 dev <- deviationScores(mespDev)
 colnames(dev) <- colData(mespDev)$Name
 dev <- dev[
-  diff_acc$p_value_adjusted<.05&apply(dev,1,function(x) any(abs(x)>1.5)),
+  # diff_acc$p_value_adjusted<.05&apply(dev,1,function(x) any(abs(x)>1.5)),
+  sel,
 ]
 
-motifs <- reduceMotifs(con)
-tf.name <- sapply(tags(motifs),'[[',"DBID.1")
-tf.family <- sapply(tags(motifs),'[[',"Family_Name")
-matches <- matchMotifs(motifs,ann$peaks,Cintestinalis,bg=bg)
+# motifs <- reduceMotifs(con)
+tf.name <- sapply(tags(motifs[sel]),'[[',"DBID.1")
+tf.family <- sapply(tags(motifs[sel]),'[[',"Family_Name")
+# matches <- matchMotifs(motifs,ann$peaks,Cintestinalis,bg=bg)
 
 hyper <- lapply(append(peaksets[c(5,6,1,2)],setNames(
   lapply(peaksets[c('open6','closed6')],intersect,peaksets$tvcAcc),
@@ -68,7 +88,7 @@ odds <- sapply(hyper,'[',,'log2OddsRatio')
 fdr <- sapply(hyper,'[',,'padj')
 odds[fdr>.05] <- 0
 # row.names(odds) <- names(motifs)
-odds <- cbind(TFGeneID=tf.kh,TF=names(motifs[sel]),family=tf.family,as.data.frame(odds),stringsAsFactors=F)
+odds <- cbind(TFGeneID=ID(motifs[sel]),TF=names(motifs[sel]),family=tf.family,as.data.frame(odds),stringsAsFactors=F)
 odds <- odds[!apply(odds[,-1:-3]<1.5,1,all),c(rep(T,3),!apply(odds[,-1:-3]<1.5,2,all))]
 
 mat <- merge(odds,dev,'row.names')[,-1]
@@ -109,7 +129,7 @@ rwidth <- max(nchar(row.names(mat)))*.08
 hm2 <- Heatmap(
   as.matrix(mat[,names(ma)]),
   split=mat$family,
-  heatmap_width = unit(ncol(ma)*.20+rwidth+.5,'in'),
+  heatmap_width = unit(ncol(ma)*.20+.5,'in'),
   heatmap_height = unit(heatmap_height,'in'),
   cluster_columns = F,
   cluster_rows = T,
@@ -118,10 +138,11 @@ hm2 <- Heatmap(
   row_dend_side='right',
   row_title_rot = 0,
   row_title_gp = gpar(cex=1),
+  column_gap=unit(.2,'in'),
   name="TF expression \n(log2FC)"
 )
 
-hm1 <- abs.hmap(
+hm1 <- Heatmap(
   as.matrix(mat[,names(odds)[c(-1:-3)]]),
   # breaks = c(0,4),
   split=mat$family,
@@ -130,12 +151,14 @@ hm1 <- abs.hmap(
   show_column_dend=F,
   show_row_dend=F,
   row_dend_side='right',
-  heatmap_width = unit(lwidth+(ncol(odds)-3)*.20+.5,'in'),
+  heatmap_width = unit(rwidth+(ncol(odds)-3)*.20+.5,'in'),
   heatmap_height = unit(heatmap_height,'in'),
   # heatmap_width = unit((ncol(odds)-2)/4+heatmap_width,'in'),
   # heatmap_height = unit(heatmap_height,'in')
   row_title_rot = 0,
   row_title_gp = gpar(cex=1),
+  col=colorRamp2(c(0,3),c('white','black')),
+  column_gap=unit(.2,'in'),
   name='TF motif enrichment \n(log2OR)'
 )
 
@@ -148,22 +171,23 @@ hm3 <- Heatmap(
   show_column_dend=F,
   show_row_dend=F,
   row_dend_side='right',
-  heatmap_width = unit((ncol(dev))*.20+.5,'in'),
+  heatmap_width = unit(lwidth+(ncol(dev))*.20+.5,'in'),
   heatmap_height = unit(heatmap_height,'in'),
   # heatmap_width = unit((ncol(odds)-2)/4+heatmap_width,'in'),
   # heatmap_height = unit(heatmap_height,'in')
   row_title_rot = 0,
   row_title_gp = gpar(cex=1),
   col = colorRamp2(c(-5,0,5),c("blue","white","red")),
+  column_gap=unit(.2,'in'),
   name="TF motif accessibility \n(deviation z-score)"
 )
 
 dir.eps(
-  "or1.5maxct",
+  "or1.5corfilt",
   width=(ncol(mat)-3)*.25+2+.25+lwidth+rwidth,
   height=heatmap_height+4
 )
-draw(hm1+hm2)
+draw(hm3+hm2+hm1)
 dev.off()
 
 hm3 <- Heatmap(
