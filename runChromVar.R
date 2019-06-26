@@ -33,28 +33,25 @@ mespDesign <- expDesign[
   expDesign$time%in%c('6hpf','10hpf'),
 ]
 
+daPeaks <- Reduce(union,peaksets[c("timeDep","mespDep","handrDep")])
 dev <- getChromVAR(
   expDesign,
-  ann$peaks[Reduce(union,peaksets[c("timeDep","mespDep","handrDep")])],
+  ann$peaks[daPeaks],
   motifs
 )
 
 mespDev <- getChromVAR(mespDesign,mespPeaks,motifs)
 
-denovoCardiacPeaks <- ann$peaks[
-  unique(geneToPeak(con,scrna$denovoCardiac)$PeakID)
-]
-cardiacDev <- getChromVAR(expDesign,denovoCardiacPeaks,motifs)
+denovoCardiacPeaks <- unique(mergeGenePeak2(con,scrna$denovoCardiac,daPeaks)$PeakID)
 
-denovoASMPeaks <- ann$peaks[
-  unique(geneToPeak(con,scrna$denovoASM)$PeakID)
-]
-asmDev <- getChromVAR(expDesign,denovoASMPeaks,motifs)
+cardiacDev <- getChromVAR(expDesign,ann$peaks[denovoCardiacPeaks],motifs)
+
+denovoASMPeaks <- unique(mergeGenePeak2(con,scrna$denovoASM,daPeaks)$PeakID)
+
+asmDev <- getChromVAR(expDesign,ann$peaks[denovoASMPeaks],motifs)
 
 asmCardiacDev <- getChromVAR(expDesign,ann$peaks[
-  unique(geneToPeak(con,Reduce(
-    union,scrna[c('denovoASM','denovoCardiac')]
-  )))
+  union(denovoASMPeaks,denovoCardiacPeaks)
 ])
 
 save(
