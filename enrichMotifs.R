@@ -21,19 +21,12 @@ bg <- letterFrequency(Views(Cintestinalis,ann$peaks),c("A","C","G","T"))
 bg <- apply(bg,2,sum)
 bg <- bg/sum(bg)
 
-motifs <- reduceMotifs(con,F,F)
+motifs <- reduceMotifs(con,F,F,F)
 motif.dup <- setNames(motifs,name(motifs))
 alignMotifs('nkx2_3.fa',motif.dup,bg=bg)
 alignMotifs('smurf.fa',motif.dup,bg=bg)
 alignMotifs('hand.fa',motif.dup,bg=bg)
 alignMotifs('handfull.fa',motif.dup,bg=bg)
-
-motifs <- reduceMotifs(con,F,F,F)
-motif.dup <- setNames(motifs,name(motifs))
-alignMotifs('nkx2_3.fa',suffix = 'dup',motif.dup,bg=bg)
-alignMotifs('smurf.fa',suffix = 'dup',motif.dup,bg=bg)
-alignMotifs('hand.fa',suffix = 'dup',motif.dup,bg=bg)
-alignMotifs('handfull.fa',suffix = 'dup',motif.dup,bg=bg)
 
 matches <- matchMotifs(motifs,ann$peaks,Cintestinalis,bg=bg)
 sel <- split(names(motifs),ID(motifs))
@@ -55,67 +48,59 @@ motif.cor <- lapply(sel, fn)
 dupct <- lapply(sel,function(x) apply(motifMatches(matches)[,x,drop=F],2,sum))
 sel <- sapply(dupct,function(x) names(x)[which.max(x)])
 
-sel <- unlist(motif.cor)
-tf.name <- sapply(tags(motifs[sel]),'[[',"DBID.1")
-tf.family <- sapply(tags(motifs[sel]),'[[',"Family_Name")
-tf.kh <- ID(motifs[sel])
+hyper <- lapply(append(peaksets[c(5,6,1,2)],setNames(
+  lapply(peaksets[c('open6','closed6')],intersect,peaksets$tvcAcc),
+  c("earlyTVC","lateTVC")
+),3),lHyper,motifMatches(matches))
 
-load('2019-06-25/chromVarOut.Rdata')
 
-mespDev <- mespDev[,c(-6,-12:-15)]
+load('2019-06-26/chromVarOut.Rdata')
+dev <- dev[,c(-6,-12:-15)]
+colnames(dev) <- colData(dev)$Name
+diff_acc <- differentialDeviations(dev,'condtime')
+
+mespDev <- mespDev[,-6]
+colnames(mespDev) <- colData(mespDev)$Name
 diff_acc <- differentialDeviations(mespDev,'condtime')
 
 sel <- split(names(motifs),ID(motifs))
 sel <- sapply(sel,function(x) x[which.min(diff_acc[x,1])])
+sel <- intersect(unlist(sel),row.names(dev))
 
-dev <- deviationScores(mespDev)
-colnames(dev) <- colData(mespDev)$Name
-dev <- dev[
-  # diff_acc$p_value_adjusted<.05&apply(dev,1,function(x) any(abs(x)>1.5)),
-  sel,
-]
+devscore <- deviationScores(mespDev)
+devscore <- devscore[unlist(sel),]
 
-# motifs <- reduceMotifs(con)
-tf.name <- sapply(tags(motifs[sel]),'[[',"DBID.1")
-tf.family <- sapply(tags(motifs[sel]),'[[',"Family_Name")
-# matches <- matchMotifs(motifs,ann$peaks,Cintestinalis,bg=bg)
-
-hyper <- lapply(append(peaksets[c(5,6,1,2)],setNames(
-  lapply(peaksets[c('open6','closed6')],intersect,peaksets$tvcAcc),
-  c("earlyTVC","lateTVC")
-),3),lHyper,motifMatches(matches)[,sel])
-  
-hm3 <- Heatmap(
-  dev[row.names(mat),],split=tf.family[row.names(dev)]
+motifHmap(
+  con,
+  hyper,
+  devscore,
+  motifs,
+  Reduce(union,append(
+    bulkGS[c(-3:-4)],
+    scrna[c(-8,-9,-11)]
+  )),
+  'DEmotifs',or=0
 )
 
-writeChromVarHmap("2019-06-25/",.01,3)
+cardiacDev <- cardiacDev[,-6]
+colnames(mespDev) <- colData(mespDev)$Name
+diff_acc <- differentialDeviations(mespDev,'condtime')
 
-peakHyper(append(peaksets[1:12],list(
-  earlyTVC=intersect(peaksets$tvcAcc,peaksets$open6),
-  lateTVC=intersect(peaksets$tvcAcc,peaksets$closed6)
-)),'peaksets',motifMatches(matches),tf.family)
+sel <- split(names(motifs),ID(motifs))
+sel <- sapply(sel,function(x) x[which.min(diff_acc[x,1])])
+sel <- intersect(unlist(sel),row.names(dev))
 
-row.names(mat) <- gene.names[mat$GeneID,]
-hm1 <- Heatmap(
-  as.matrix(mat[,names(ma)]),
-  split=mat$family,
-  heatmap_width = unit((ncol(ma))*.25+
-    max(nchar(row.names(mat)))*.05+
-    max(nchar(as.character(mat$family)))*.05+4,'in'),
-  heatmap_height = unit(heatmap_height,'in'),
-  cluster_columns = F,
-  cluster_row_slices = F,
-  row_title_rot = 0,
-  row_title_gp = gpar(cex=1),
-  right_annotation = rowAnnotation(TF=row_anno_text(mat$TF))
+devscore <- deviationScores(mespDev)
+devscore <- devscore[unlist(sel),]
+
+motifHmap(
+  con,
+  hyper,
+  devscore,
+  motifs,
+  Reduce(union,append(
+    bulkGS[c(-3:-4)],
+    scrna[c(-8,-9,-11)]
+  )),
+  'DEmotifs',or=0
 )
-
-dir.eps(
-  "tmp",
-  width=(ncol(ma)-3)*.25+6+.25+
-    max(nchar(row.names(mat)))*.05+
-    max(nchar(as.character(mat$family)))*.05,
-  height=heatmap_height+4)
-draw(hm1)
-dev.off()

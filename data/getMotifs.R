@@ -141,6 +141,25 @@ mergeGeneName <- function(x,y){
   return(x)
 }
 
+lowerGeneName <- function(x){
+  if(
+    grepl("[A-Z]{2}",x)&!(grepl("^KH\\.",x)|grepl("^SI:",x))
+  ){
+    tmp <- sub(".*?([A-Z])([A-Z]+)",'\\2',x)
+    return(sub(tmp,tolower(tmp),x))
+  } else {x}
+}
+
+khToName <- function(x,gene.names){
+  x <- gene.names[x,"UniqueNAME"]
+  x <- sub(
+    '^KH\\.[A-Z][0-9]+\\.[0-9]+_','',sub("KH2013:",'',x)
+  )
+  x <- sub(';$','',x)
+  x <- sapply(x,lowerGeneName)
+  return(x)
+}
+
 nameMotifs <- function(motifs,gene.names,khid.sub=T){
   require(TFBSTools)
   tf.family <- sapply(tags(motifs),'[[',"Family_Name")
@@ -156,10 +175,7 @@ nameMotifs <- function(motifs,gene.names,khid.sub=T){
   tf.kh <- names(motifs)
   
   tf.kh.gene <- strsplit(tf.kh,';')
-  tf.kh.gene <- lapply(tf.kh.gene,function(x) sub(
-    '^KH\\.[A-Z][0-9]+\\.[0-9]+_','',sub("KH2013:",'',gene.names[x,'UniqueNAME'])
-  ))
-  tf.kh.gene <- sapply(tf.kh.gene,sub,pattern=';$',replace='')
+  tf.kh.gene <- lapply(tf.kh.gene,khToName,gene.names)
   tf.kh.gene <- lapply(tf.kh.gene,function(x) x[!duplicated(x)])
   
   if(khid.sub){
@@ -168,12 +184,13 @@ nameMotifs <- function(motifs,gene.names,khid.sub=T){
   }
   
   tf.kh.gene <- lapply(tf.kh.gene,sub,pattern='V\\$',replacement='')
-  tf.kh.gene <- lapply(tf.kh.gene,function(y) sapply(y,function(x) if(
-    grepl("^[A-Z]{2}",x)&!(grepl("^KH\\.",x)|grepl("^SI:",x))
-  ){
-    tmp <- sub("(^.)([A-Z]+)",'\\2',x)
-    return(sub(tmp,tolower(tmp),x))
-  } else {x}))
+  
+  # tf.kh.gene <- lapply(tf.kh.gene,function(y) sapply(y,lowerGeneName))#function(x) if(
+  #   grepl("^[A-Z]{2}",x)&!(grepl("^KH\\.",x)|grepl("^SI:",x))
+  # ){
+  #   tmp <- sub("(^.)([A-Z]+)",'\\2',x)
+  #   return(sub(tmp,tolower(tmp),x))
+  # } else {x}))
   
   tf.kh.gene <- lapply(tf.kh.gene,Reduce,f=mergeGeneName)
   

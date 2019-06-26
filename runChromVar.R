@@ -51,8 +51,14 @@ denovoASMPeaks <- ann$peaks[
 ]
 asmDev <- getChromVAR(expDesign,denovoASMPeaks,motifs)
 
+asmCardiacDev <- getChromVAR(expDesign,ann$peaks[
+  unique(geneToPeak(con,Reduce(
+    union,scrna[c('denovoASM','denovoCardiac')]
+  )))
+])
+
 save(
-  dev,mespDev,cardiacDev,asmDev,
+  dev,mespDev,cardiacDev,asmDev,asmCardiacDev,
   file = mkdate('chromVarOut','Rdata')
 )
 
