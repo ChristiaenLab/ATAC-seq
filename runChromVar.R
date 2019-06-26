@@ -33,7 +33,11 @@ mespDesign <- expDesign[
   expDesign$time%in%c('6hpf','10hpf'),
 ]
 
-dev <- getChromVAR(expDesign,ann$peaks[Reduce(union,peaksets[c("timeDep","mespDep","handrDep")])])
+dev <- getChromVAR(
+  expDesign,
+  ann$peaks[Reduce(union,peaksets[c("timeDep","mespDep","handrDep")])],
+  motifs
+)
 
 mespDev <- getChromVAR(mespDesign,mespPeaks,motifs)
 
