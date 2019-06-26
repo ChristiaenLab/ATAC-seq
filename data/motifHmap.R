@@ -16,7 +16,10 @@ motifHmap <- function(con,hyper,dev,motifs,file,p=.05,or=1.5){
     as.data.frame(odds),
     stringsAsFactors=F
   )
-  odds <- odds[!apply(odds[,-1:-3]<or,1,all),c(rep(T,3),!apply(odds[,-1:-3]<or,2,all))]
+  odds <- odds[
+    !apply(odds[,-1:-3]<or,1,all),
+    c(rep(T,3),!apply(odds[,-1:-3]<or,2,all))
+  ]
   
   mat <- merge(odds,dev,'row.names')[,-1]
   
@@ -33,22 +36,13 @@ motifHmap <- function(con,hyper,dev,motifs,file,p=.05,or=1.5){
     tf.kh.gene,
     SIMPLIFY = F
   )
-  # mat <- mapply(cbind,mat,GeneID=tf.kh.gene,stringsAsFactors=F,SIMPLIFY = F)
-  # mat <- do.call(rbind,unlist(mat,F))
-  # mat <- Reduce(function(x,y) {
-  #   x[tf.kh.gene[[y]]] <- mat[[y]]
-  #   return(x)
-  # },1:length(mat),list())
   mat <- do.call(rbind,mat)
-  
   
   ma <- dbReadTable(con,'microarray',row.names="GeneID")[,23:30]
   names(ma) <- as.character(seq(6,20,2))
   mat <- merge(mat,ma,by.x="GeneID",by.y="row.names")
   row.names(mat) <- make.unique(as.character(mat$TF))
-  # row.names(mat) <- gene.names[mat$GeneID,]
   
-  # heatmap_width <- .25+max(nchar(row.names(mat)))*.05+max(nchar(as.character(mat$family)))*.05+(ncol(mat)-3)/4+heatmap_width
   heatmap_height <- nrow(mat)*.20+max(nchar(names(mat)))*.08
   lwidth <- max(nchar(mat$family))*.08
   rwidth <- max(nchar(row.names(mat)))*.08
@@ -71,7 +65,6 @@ motifHmap <- function(con,hyper,dev,motifs,file,p=.05,or=1.5){
   
   hm1 <- Heatmap(
     as.matrix(mat[,names(odds)[c(-1:-3)]]),
-    # breaks = c(0,4),
     split=mat$family,
     cluster_columns = F,
     cluster_row_slices=T,
@@ -80,8 +73,6 @@ motifHmap <- function(con,hyper,dev,motifs,file,p=.05,or=1.5){
     row_dend_side='right',
     heatmap_width = unit(rwidth+(ncol(odds)-3)*.20+.5,'in'),
     heatmap_height = unit(heatmap_height,'in'),
-    # heatmap_width = unit((ncol(odds)-2)/4+heatmap_width,'in'),
-    # heatmap_height = unit(heatmap_height,'in')
     row_title_rot = 0,
     row_title_gp = gpar(cex=1),
     col=colorRamp2(c(0,3),c('white','black')),
@@ -91,7 +82,6 @@ motifHmap <- function(con,hyper,dev,motifs,file,p=.05,or=1.5){
   
   hm3 <- Heatmap(
     as.matrix(mat[,colnames(dev)]),
-    # breaks = c(0,4),
     split=mat$family,
     cluster_columns = F,
     cluster_row_slices=T,
@@ -100,8 +90,6 @@ motifHmap <- function(con,hyper,dev,motifs,file,p=.05,or=1.5){
     row_dend_side='right',
     heatmap_width = unit(lwidth+(ncol(dev))*.20+.5,'in'),
     heatmap_height = unit(heatmap_height,'in'),
-    # heatmap_width = unit((ncol(odds)-2)/4+heatmap_width,'in'),
-    # heatmap_height = unit(heatmap_height,'in')
     row_title_rot = 0,
     row_title_gp = gpar(cex=1),
     col = colorRamp2(c(-5,0,5),c("blue","white","red")),

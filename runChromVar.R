@@ -52,7 +52,7 @@ denovoASMPeaks <- ann$peaks[
 asmDev <- getChromVAR(expDesign,denovoASMPeaks,motifs)
 
 save(
-  mespDev,cardiacDev,asmDev,
+  dev,mespDev,cardiacDev,asmDev,
   file = mkdate('chromVarOut','Rdata')
 )
 
