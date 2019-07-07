@@ -31,24 +31,48 @@ peaks <- mapply(
   intersect,
   list(
       primedCardiacPeaks=setdiff(peaksets$tvcAcc,peaksets$open18),
-      denovoCardiacPeaks=setdiff(peaksets$open18,peaksets$tvcAcc),
+      denovoCardiacPeaks=setdiff(peaksets$open18,union(peaksets$tvcAcc,peaksets$closed6)),
       primedAsmPeaks=setdiff(peaksets$tvcAcc,peaksets$open18),
-      denovoAsmPeaks=setdiff(peaksets$open18,peaksets$tvcAcc)
+      denovoAsmPeaks=setdiff(peaksets$open18,union(peaksets$tvcAcc,peaksets$closed6))
   ),
   list(
-    names(ann$peaks),
+    # names(ann$peaks),
     row.names(mekmut.dnfgfr.18$condition_handr_MekMut_vs_control)[
-      mekmut.dnfgfr.18$condition_handr_MekMut_vs_control$log2FoldChange< -.00|
-        mekmut.dnfgfr.18$condition_handr_dnFGFR_vs_control$log2FoldChange> .00
+      mekmut.dnfgfr.18$condition_handr_MekMut_vs_control$log2FoldChange< -.25|
+        mekmut.dnfgfr.18$condition_handr_dnFGFR_vs_control$log2FoldChange> .25
     ],
-    names(ann$peaks),
+    row.names(mekmut.dnfgfr.18$condition_handr_MekMut_vs_control)[
+      mekmut.dnfgfr.18$condition_handr_MekMut_vs_control$log2FoldChange< -.25|
+        mekmut.dnfgfr.18$condition_handr_dnFGFR_vs_control$log2FoldChange> .25
+    ],
+    # names(ann$peaks),
     row.names(mekmut.dnfgfr.18$condition_handr_dnFGFR_vs_control)[
-      mekmut.dnfgfr.18$condition_handr_dnFGFR_vs_control$log2FoldChange< -.00|
-        mekmut.dnfgfr.18$condition_handr_MekMut_vs_control$log2FoldChange>.00
+      mekmut.dnfgfr.18$condition_handr_dnFGFR_vs_control$log2FoldChange< -.25|
+        mekmut.dnfgfr.18$condition_handr_MekMut_vs_control$log2FoldChange>.25
+    ],
+    row.names(mekmut.dnfgfr.18$condition_handr_dnFGFR_vs_control)[
+      mekmut.dnfgfr.18$condition_handr_dnFGFR_vs_control$log2FoldChange< -.25|
+        mekmut.dnfgfr.18$condition_handr_MekMut_vs_control$log2FoldChange>.25
     ]
   )
 )
 
+tmp <- mekmut.dnfgfr.18$condition_handr_MekMut_vs_control[,1]-mekmut.dnfgfr.18$condition_handr_dnFGFR_vs_control[,1]
+peaks <- mapply(
+  intersect,
+  list(
+      primedCardiacPeaks=setdiff(peaksets$tvcAcc,Reduce(union,peaksets[c("open6","open18")])),
+      denovoCardiacPeaks=setdiff(peaksets$open18,Reduce(union,peaksets[c("tvcAcc","closed6","open6")])),
+      primedAsmPeaks=setdiff(peaksets$tvcAcc,Reduce(union,peaksets[c("open6","open18")])),
+      denovoAsmPeaks=setdiff(peaksets$open18,Reduce(union,peaksets[c("tvcAcc","closed6","open6")]))
+  ),
+  list(
+    row.names(mekmut.dnfgfr.18[[1]])[tmp<0],
+    row.names(mekmut.dnfgfr.18[[1]])[tmp<0],
+    row.names(mekmut.dnfgfr.18[[1]])[tmp>0],
+    row.names(mekmut.dnfgfr.18[[1]])[tmp>0]
+  )
+)
 sapply(peaks,length)
 
 peak.gene <- mapply(
@@ -60,6 +84,22 @@ peak.gene <- mapply(
 )
 
 dynamics <- lapply(peak.gene,function(x) unique(x$PeakID))
+dynamics <- sapply(dynamics,setdiff,geneToPeak(con,Reduce(union,append(
+  scrna[c("TVCP","STVC")],
+  bulkGS[c("MAPK10activated","downreg6hpf")]
+)))$PeakID)
+
+dynamics <- mapply(
+  setdiff,
+  dynamics,
+  list(
+    geneToPeak(con, Reduce(union,append(scrna["ASM"],bulkGS["MAPK18activated"])))$PeakID,
+    geneToPeak(con, Reduce(union,append(scrna["ASM"],bulkGS["MAPK18activated"])))$PeakID,
+    geneToPeak(con, Reduce(union,append(scrna["Cardiac"],bulkGS["MAPK18inhibited"])))$PeakiD,
+    geneToPeak(con, Reduce(union,append(scrna["Cardiac"],bulkGS["MAPK18inhibited"])))$PeakiD
+  )
+)
+
 sapply(dynamics,length)
 
 
@@ -76,6 +116,32 @@ peakFamilyHyper(
   cisbp.family[selex.hocomoco],
   motifMatches(cisbp.matches)[,selex.hocomoco],
   p=.050,fdr=T,logOR = 0.00,maskOR=T
+)
+colnames(cardiacDev) <- colData(cardiacDev)$Name
+colnames(asmDev) <- colData(asmDev)$Name
+colnames(asmCardiacDev) <- colData(asmCardiacDev)$Name
+motifHmap(
+  con,
+  lapply(dynamics,lHyper,motifMatches(matches)),
+  deviationScores(asmCardiacDev[,-6])[sel,],
+  motifs,
+  Reduce(union,append(
+    bulkGS[c(-3:-4)],
+    scrna[c(-8,-9,-11)]
+  )),
+  'denovoCardiac',or=1,padj=F
+)
+
+motifHmap(
+  con,
+  lapply(dynamics,lHyper,motifMatches(matches)),
+  deviationScores(dev)[sel,],
+  motifs,
+  Reduce(union,append(
+    bulkGS[c(-3:-4)],
+    scrna[c(-8,-9,-11)]
+  )),
+  'fig5a',or=1,padj=F
 )
 
 # Fig. S18A

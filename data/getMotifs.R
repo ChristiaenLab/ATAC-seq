@@ -166,6 +166,20 @@ nameMotifs <- function(motifs,gene.names,khid.sub=T){
   tf.family[grep("(Gata|Zn?F)",tf.family,T)] <- "Zinc finger"
   tf.family[tf.family=="NR"] <- "Nuclear receptor"
   tf.family[tf.family=="ETS"] <- "Ets"
+  tf.family[tf.family=="MAD"] <- "SMAD"
+  tf.family[tf.family=="MADS"] <- "MADS-box"
+  tf.family[tf.family=="Paired"] <- "Homeodomain,POU"
+  tf.family[tf.family=="Homeodomain,Paired box"] <- "Paired box"
+  tf.family[tf.family=="Paired,Homeobox"] <- "Paired box"
+  tf.family[tf.family=="EBF"] <- "HLH"
+  tf.family[tf.family=="POU,Homeobox,HMG"] <- "HMG"
+  tf.family[tf.family=="CTF,Forkhead"] <- "CTF"
+  tf.family[tf.family=="ETS:IRF"] <- "IRF"
+  tf.family[tf.family=="promoter"] <- "TBP"
+  tf.family[tf.family=="Homeobox,bHLH"] <- "Homeodomain"
+  tf.family[tf.family=="AP2"] <- "AP-2"
+  tf.family[tf.family=="E2F/TDP"] <- "E2F"
+  
   tf.tags <- mapply(function(x,y){
     x$Family_Name <- y
     return(x)
@@ -195,6 +209,9 @@ nameMotifs <- function(motifs,gene.names,khid.sub=T){
   tf.kh.gene <- lapply(tf.kh.gene,Reduce,f=mergeGeneName)
   
   tf.kh.gene <- sapply(tf.kh.gene,paste,collapse=';')
+  
+  tf.family[tf.kh.gene=="Ctcf"] <- "Zinc finger"
+  tf.family[tf.kh.gene=="Rbpj"] <- "CSL"
   
   motifs <- mapply(
     PWMatrix,

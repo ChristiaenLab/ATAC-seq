@@ -49,8 +49,8 @@ dir.img <- function(filename, fn,ext, path = '.', ...,append.date=T){
   filename <- mkdate(filename,ext,path,append.date)
   fn(filename, ...)
 }
-dir.tab <- function(x,filename, path = '.',ext='txt',...,append.date=T){
-  dir.out(x,write.table,filename,ext,path,sep='\t', quote=F,...,append.date=append.date)
+dir.tab <- function(x,filename, path = '.',ext='txt',quote=F,...,append.date=T){
+  dir.out(x,write.table,filename,ext,path,sep='\t', quote=quote,...,append.date=append.date)
   # path <- paste(path, Sys.Date(), sep = '/')
   # # path <- get.filename(path)
   # if(!dir.exists(path)) dir.create(path,recursive = T)
@@ -59,8 +59,8 @@ dir.tab <- function(x,filename, path = '.',ext='txt',...,append.date=T){
   # write.table(x,paste(filename,'txt',sep='.'),sep='\t', quote=F,...)
   # # if(is.data.frame(x)&summary) write.csv(summary(x),paste(filename,'summary.csv',sep = '.'))
 }
-dir.csv <- function(x,filename, path = '.', summary=F,...,append.date=T){
-  dir.out(x,write.csv,filename,'csv',path,quote=T,...,append.date=append.date)
+dir.csv <- function(x,filename, path = '.', summary=F,quote=T,...,append.date=T){
+  dir.out(x,write.csv,filename,'csv',path,quote=quote,...,append.date=append.date)
   # path <- paste(path, Sys.Date(), sep = '/')
   # if(!dir.exists(path)) dir.create(path,recursive = T)
   # filename <- paste(path, filename, sep = '/')
@@ -174,25 +174,25 @@ lrtab <- function(dir,fn=read.table,pattern=NULL,...) {
 }
 
 # apply functions rewritten to use parallel processing
-apply2 <- function(...,type = "FORK") {
+apply2 <- function(...,type = "FORK",threads=detectCores()-1) {
   require(BiocGenerics)
-  cl <- makeCluster(detectCores()-1,type = type,outfile='')
+  cl <- makeCluster(threads,type = type,outfile='')
   result <- parApply(cl,...)
   stopCluster(cl)
   return(result)
 }
 
-lapply2 <- function(...,type = "FORK") {
+lapply2 <- function(...,type = "FORK",threads=detectCores()-1) {
   require(BiocGenerics)
-  cl <- makeCluster(detectCores()-1,type = type,outfile='')
+  cl <- makeCluster(threads,type = type,outfile='')
   result <- parLapply(cl,...)
   stopCluster(cl)
   return(result)
 }
 
-sapply2 <- function(...,type = "FORK") {
+sapply2 <- function(...,type = "FORK",threads=detectCores()-1) {
   require(BiocGenerics)
-  cl <- makeCluster(detectCores()-1,type = type,outfile='')
+  cl <- makeCluster(threads,type = type,outfile='')
   result <- parSapply(cl,...)
   stopCluster(cl)
   return(result)

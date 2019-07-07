@@ -1,4 +1,4 @@
-# Figs. 1C, 4C, S14B, S17B
+# Figs. 1C, 4C, S14AB, S17B
 
 library(DBI)
 library(ComplexHeatmap)
@@ -180,14 +180,16 @@ Heatmap(
 )
 dev.off()
 
+# Fig. S14A
+foxfPeaks <- sapply(
+  peaksets[c('tvcAcc','closed6','closedFoxf')],
+  intersect,
+  geneToPeak(con,bulkGS$FoxFactivated)$PeakID
+)
 library(UpSetR)
 dir.eps('foxf_tvc')
 upset(
-  fromList(sapply(
-    peaksets[c('tvcAcc','closed6','closedFoxf')],
-    intersect,
-    geneToPeak(con,bulkGS$FoxFactivated)$PeakID
-  )),
+  fromList(foxfPeaks),
   shade.alpha = 1,
   matrix.dot.alpha = 1,
   order.by = 'freq'
@@ -204,3 +206,82 @@ upset(
   matrix.dot.alpha = 1
 )
 dev.off()
+
+toContingencyTable <- function(x,y) matrix(
+  sapply(list(!x%in%y,x%in%y,y%in%x,!y%in%x),sum),2
+)
+fisher.test(toContingencyTable(foxfPeaks$tvcAcc,foxfPeaks$closedFoxf))
+fisher.test(toContingencyTable(foxfPeaks$closed6,foxfPeaks$closedFoxf))
+
+UpSet(make_comb_mat(foxfPeaks))
+
+# annDeviation <- function(mat) mapply(
+#   getOR,
+#   comb_size(mat),
+#   comb_name(mat),
+#   MoreArgs = list(mat)
+# )
+
+
+getUpset(
+  append(
+    peaksets[c('tvcAcc','closed6','closedFoxf')],
+    list(targetGenes=unique(geneToPeak(con,bulkGS$FoxFactivated)$PeakID))
+  ),
+  'foxf_tvc',
+  length(ann$peaks),
+  function(x) if("targetGenes"%in%x){'forestgreen'}else{"black"},
+  setClust = T
+)
+getUpset(foxfPeaks,'foxf_tvc_gene',n = length(union(peaksets$mespDep,peaksets$timeDep)))
+getUpset(peaksets[c(6,1,11,12,2,5)],'peaksets',min_set_size=10)
+getUpset(append(
+  append(
+    lapply(list(
+      camrasDnfgfrUp=dbGetQuery(
+        con,
+        'SELECT GeneID FROM handr_rnaseq 
+        WHERE comparison="condtime_foxfcamras18hpf_handrdnfgfr18hpf"  
+        AND log2FoldChange>1 AND padj<0.05'
+      ),
+      dnfgfrDown=dbGetQuery(
+        con,
+        'SELECT GeneID FROM handr_rnaseq 
+        WHERE comparison="condtime_handrdnfgfr18hpf_handrlacz18hpf" 
+        AND log2FoldChange<-1 AND padj<0.05'
+      ),
+      camrasUp=dbGetQuery(
+        con,
+        'SELECT GeneID FROM handr_rnaseq 
+        WHERE comparison="condtime_foxfcamras18hpf_handrlacz18hpf"  
+        AND log2FoldChange>1 AND padj<0.05'
+      ),
+      camrasDnFgfrDown=dbGetQuery(
+        con,
+        'SELECT GeneID FROM handr_rnaseq 
+        WHERE comparison="condtime_foxfcamras18hpf_handrdnfgfr18hpf" 
+        AND log2FoldChange<-1 AND padj<0.05'
+      ),
+      camrasDown=dbGetQuery(
+        con,
+        'SELECT GeneID FROM handr_rnaseq 
+        WHERE comparison="condtime_foxfcamras18hpf_handrlacz18hpf" 
+        AND log2FoldChange<-1 AND padj<0.05'
+      ),
+      dnfgfrUp=dbGetQuery(
+        con,
+        'SELECT GeneID FROM handr_rnaseq 
+        WHERE comparison="condtime_handrdnfgfr18hpf_handrlacz18hpf" 
+        AND log2FoldChange>1 AND padj<0.05'
+      )
+    ),'[',,"GeneID"),
+    scrna[c('ASM')],3),
+  scrna["Cardiac"]
+),'cardiac_asm',combColFn = function(x) if(
+  "dnfgfrDown"%in%x&"camrasDnfgfrUp"%in%x
+){"blue"}else if(
+  "camrasDown"%in%x&"camrasDnFgfrDown"%in%x
+){"red"}else{"black"})
+
+getUpset(peaksets[c(5:6,9:10)],'time')
+getUpset(peaksets[c(1:6,9:10)],'condtime')
