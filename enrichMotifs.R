@@ -49,6 +49,22 @@ plotPeakMatches(
   sapply(tags(motifs),'[[',"Family_Name")[colnames(ebfscore)]
 )
 
+t12 <- matchMotifs(
+  motifs,
+  c(setNames(GRanges("KhC7",IRanges(1974923,1975287)),'t12'),ann$peaks[c(
+    # "KhC7.909",
+    "KhC7.914")]),
+  Cintestinalis,bg=bg,out='scores'
+)
+tbxscore <- sapply(motifByGene,function(x) apply(motifScores(t12)[,x,drop=F],1,max))
+colnames(tbxscore) <- sapply(motifByGene,'[',1)
+
+plotPeakMatches(
+  tbxscore,
+  "tbxmotifs",
+  sapply(tags(motifs),'[[',"Family_Name")[colnames(tbxscore)]
+)
+
 matches <- matchMotifs(motifs,ann$peaks,Cintestinalis,bg=bg)
 sel <- split(names(motifs),ID(motifs))
 
@@ -187,9 +203,6 @@ peaks <- mapply(union,peaks,peaksets[c('heartAcc','asmAcc')])
 peaks <- mapply(setdiff,peaks,peaksets[c('asmAcc','heartAcc')])
 peaks <- lapply(peaks,setdiff,Reduce(union,peaksets[c("tvcAcc",'closed18')]))
 
-peaks <- append(peaks,lapply(list(
-  primedCardiacPeaks=
-)))
 peak.gene <- mapply(
   mergeGenePeak2,
   peaks=peaks[c(3,1,4,2)],
