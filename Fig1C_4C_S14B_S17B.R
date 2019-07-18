@@ -118,7 +118,7 @@ cardiac.asmMat <- do.call(rbind,sapply(cardiac.asmDA,function(x) peakmat[x$PeakI
 
 
 # Fig. 1C
-dir.eps('time',height=12)
+dir.eps('Fig1C',height=12)
 col.hmap(
   peakmat[peaksets$timeDep,c(-5,-7:-8)],
   split=peakmat[peaksets$timeDep,1]>0,
@@ -157,7 +157,7 @@ mapply(
 # Fig. S14B
 tmp <- mergeGenePeak(con,bulkGS$FoxFactivated,peaksets$timeDep)
 tmp[,1] <- gene.names[tmp$GeneID,"UniqueNAME"]
-dir.eps('foxfTime',height=nrow(tmp)/6+2)
+dir.eps('FigS14B',height=nrow(tmp)/6+2)
 Heatmap(
   peakmat[tmp[,2],c(1:5,9)],
   cluster_columns = F,
@@ -187,7 +187,7 @@ foxfPeaks <- sapply(
   geneToPeak(con,bulkGS$FoxFactivated)$PeakID
 )
 library(UpSetR)
-dir.eps('foxf_tvc')
+dir.eps('FigS14A')
 upset(
   fromList(foxfPeaks),
   shade.alpha = 1,

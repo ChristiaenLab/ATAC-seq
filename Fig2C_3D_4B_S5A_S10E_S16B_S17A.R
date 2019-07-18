@@ -1,4 +1,4 @@
-#Figs. 2C, 3B, 4B, S4A, S9E, S16B, S17A
+#Figs. 2C, 3D,4B, S5A, S10E, S16B, S17A
 
 source('data/dbHeatmap.R')
 source('data/sqlfns.R')
@@ -64,8 +64,6 @@ setNames(reshape2::melt(
     peaks=peaksets[c('tvcAcc','atmAcc')]
   )
 ),c("GeneID","gene_set"))
-
-# Table S2
 tmp <- mergeGenePeak(con,bulkGS$MAPK10activated,peaksets$tvcAcc)
 tmp$UniqueNAME <- gene.names[tmp$GeneID,"UniqueNAME"]
 tmp <- merge(tmp,dbReadTable(con,'peakfeature')[,1:4])
@@ -83,14 +81,9 @@ mapk10quant <- lapply(
   function(x) unique(mergeGenePeak(
     con,
     x,
-    # intersect(x,bulkGS$downreg6hpf),
     row.names(sig.sub(atac$condition_mesp_dnFGFR_vs_control,quant.lfc))
   )$GeneID)
 )
-
-tmp <- apply(motifMatches(matches)[,intersect(cisbpDat[cisbpDat$GeneName=="FOXF1/2",1],colnames(motifMatches(matches)))],1,any)
-tmp <- names(tmp)[tmp]
-tmp <- row.names(homer.matches)[motifMatches(homer.matches)[,"Foxf1"]]
 
 # Fig. 2C
 dbHeatmap(
@@ -100,18 +93,14 @@ dbHeatmap(
     "condition_mesp_MekMut_vs_control"
   )],
   mapk10quant[1],
-  append(peaksets[c("atmAcc","tvcAcc")],list(
-    intersect(tmp,Reduce(union,peaksets[c("atmAcc","tvcAcc")]))
-    # tmp
-  )),
-  c('gray28','forestgreen','firebrick'),
+  peaksets[c("atmAcc","tvcAcc")],
+  c('gray28','forestgreen'),
   list(scrna=prime.denovo),list(scrna=cols),
-  'mapk10tvc',
-  peak.pch = c(18,18,1),
-  peak.cex = c(1.2,1.2,1.2)
+  'Fig2C',
+  peak.pch = c(18,18),
+  peak.cex = c(1.2,1.2)
 )
-
-# Fig. S4A
+# Fig. S5A
 dbHeatmap(
   con,rna[1],
   atac[c(
@@ -119,25 +108,21 @@ dbHeatmap(
     "condition_mesp_MekMut_vs_control"
   )],
   mapk10quant[2],
-  append(peaksets[c("atmAcc","tvcAcc")],list(
-    intersect(tmp,Reduce(union,peaksets[c("atmAcc","tvcAcc")]))
-    # tmp
-  )),
-  c('gray28','forestgreen','firebrick'),
+  peaksets[c("atmAcc","tvcAcc")],
+  c('gray28','forestgreen'),
   list(scrna=prime.denovo),list(scrna=cols),
-  'mapk10atm',
-  peak.pch=c(18,18,1)
+  'FigS5A',
+  peak.pch=c(18,18)
 )
 
-# Fig. 3D, S9E
+# Fig. 3D
 dbHeatmap(
   con,rna[1:2],atac["condition_FoxF_KO_vs_control"],
   bulkGS[c(
-    "FoxFactivated","FoxFinhibited"
+    "FoxFactivated"#,"FoxFinhibited"
   )],
   list(
     intersect(peaksets$closedFoxf,peaksets$tvcAcc),
-    # intersect(intersect(peaksets$closedFoxf,peaksets$tvcAcc),tmp)
     intersect(
       intersect(peaksets$closedFoxf,peaksets$tvcAcc),
       row.names(selex.matches)[motifMatches(selex.matches)[,"FoxF"]]
@@ -145,10 +130,11 @@ dbHeatmap(
   ),
   c('forestgreen','firebrick'),
   list(scrna=prime.denovo),list(scrna=cols),
-  'foxf',
+  'Fig3D',
   gene.peak.intersect = F,
   peak.pch = c(18,1)
 )
+
 
 # Fig. 4B
 dbHeatmap(
@@ -163,7 +149,7 @@ dbHeatmap(
   ),
   peaksets[c("heartAcc","asmAcc")],c('red','blue'),
   list(scrna=prime.denovo),list(scrna=cols),
-  'mapk18denovoCardiac',
+  'Fig4B',
   gene.peak.intersect = F
 )
 # Fig. S17A 
@@ -179,10 +165,9 @@ dbHeatmap(
   ),
   peaksets[c("heartAcc","asmAcc")],c('red','blue'),
   list(scrna=prime.denovo),list(scrna=cols),
-  'mapk18denovoAsm',
+  'FigS17A',
   gene.peak.intersect = F
 )
-
 # Fig. S16B
 dbHeatmap(
   con,rna,atac[3:4],
@@ -201,6 +186,6 @@ dbHeatmap(
   peaksets[c("heartAcc","asmAcc")],
   c('red','blue'),
   list(scrna=prime.denovo),list(scrna=cols),
-  'mapk18top50',
+  'FigS17B',
   gene.peak.intersect = F
 )
