@@ -64,7 +64,7 @@ is.sig <- function(x,lfc=1,p=0.05,tail='both',na.as.false=T) {
   #       If "upper",returns TRUE if x > lfc
   #       If "lower", returns TRUE if x < -lfc
   # na.as.false logical indicating whether to return FALSE if is.na(x)
-  res <- x$padj<p
+  res <- x$padj<=p
   if(length(lfc)==2){
     res <- (x$log2FoldChange<lfc[1]|x$log2FoldChange>lfc[2])&res
   }else if(tail=="both"){

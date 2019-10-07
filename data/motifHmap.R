@@ -26,7 +26,7 @@ motifHmap <- function(
   sel <- intersect(dat$Row.names,row.names(hyper[[1]]))
   dat <- dat[sel,-1]
   tf.kh.gene <- strsplit(dat$TFGeneID,';')
-  dat <- dat[sapply(tf.kh.gene,function(x) any(x%in%genes)),]
+  if(!is.null(genes)) dat <- dat[sapply(tf.kh.gene,function(x) any(x%in%genes)),]
   
   # motifs <- motifs[row.names(hyper[[1]])]
   

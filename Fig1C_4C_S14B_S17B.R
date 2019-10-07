@@ -222,7 +222,7 @@ UpSet(make_comb_mat(foxfPeaks))
 #   MoreArgs = list(mat)
 # )
 
-
+library('data/upset.R')
 getUpset(
   append(
     peaksets[c('tvcAcc','closed6','closedFoxf')],

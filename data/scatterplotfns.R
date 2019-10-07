@@ -31,6 +31,13 @@ scatterRnaAtac <- function(
   mapply(points,da.pts,col=col,cex=cex,pch=pch)
   segments(xlim[1],0,xlim[2],0)
   segments(0,ylim[1],0,ylim[2])
+  
+  gene.names <- getGeneNames(con)[da$GeneID,"UniqueNAME"]
+  gene.names <- sub(".*_",'',gene.names)
+  gene.names <- sub("KH2013:","",gene.names)
+  
+  text(sig,cex=.5,labels = gene.names)
+  
   dev.off()
 }
 
